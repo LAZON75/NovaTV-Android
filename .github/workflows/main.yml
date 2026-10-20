@@ -38,9 +38,23 @@ jobs:
       - name: Install Android packages
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
+          set +o pipefail
+
           yes | sdkmanager --licenses
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          LICENSE_STATUS=$?
+
+          set -o pipefail
+
+          if [ "$LICENSE_STATUS" -ne 0 ]; then
+            echo "::error::Android SDK license acceptance failed."
+            exit 1
+          fi
+
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Find and extract project ZIP
         shell: bash
@@ -69,7 +83,7 @@ jobs:
             -print -quit)"
 
           if [ -z "$APP_GRADLE" ]; then
-            echo "::error::Android app Gradle file not found."
+            echo "::error::Android Gradle file not found in ZIP."
             find project -maxdepth 5 -type f | head -100
             exit 1
           fi
@@ -80,7 +94,7 @@ jobs:
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
 
-      - name: Fix Media3 versions and Java compatibility
+      - name: Fix Java and Kotlin compatibility
         shell: bash
         run: |
           set -euo pipefail
@@ -92,30 +106,6 @@ jobs:
 
           root = Path(sys.argv[1])
 
-          # Update Media3 versions in Gradle configuration files.
-          for p in root.rglob("*"):
-              if not p.is_file():
-                  continue
-
-              if p.name not in (
-                  "build.gradle",
-                  "build.gradle.kts",
-                  "libs.versions.toml"
-              ):
-                  continue
-
-              text = p.read_text()
-              updated = re.sub(
-                  r'(?<![\d.])1\.5\.1(?![\d.])',
-                  '1.6.1',
-                  text
-              )
-
-              if updated != text:
-                  p.write_text(updated)
-                  print(f"Updated Media3 version: {p}")
-
-          # Align common Java and Kotlin JVM target declarations.
           for p in root.rglob("*"):
               if not p.is_file() or p.name not in (
                   "build.gradle",
@@ -123,78 +113,42 @@ jobs:
               ):
                   continue
 
-              text = p.read_text()
-              original = text
+              s = p.read_text()
+              original = s
 
-              text = re.sub(
+              s = re.sub(
                   r'JavaVersion\.VERSION_(?:1_8|8|11)',
                   'JavaVersion.VERSION_17',
-                  text
+                  s
               )
 
-              text = re.sub(
+              s = re.sub(
                   r'jvmTarget\s*=\s*["\'](?:1\.8|8|11)["\']',
                   'jvmTarget = "17"',
-                  text
+                  s
               )
 
-              if text != original:
-                  p.write_text(text)
-                  print(f"Updated JVM compatibility: {p}")
+              if s != original:
+                  p.write_text(s)
+                  print(f"Updated: {p}")
 
-          # Ensure Google Maven and Maven Central are configured
-          # in settings.gradle when dependency repositories are declared there.
-          settings_files = [
-              root / "settings.gradle.kts",
-              root / "settings.gradle"
-          ]
+          app = root / "app"
+          gradle_file = (
+              app / "build.gradle.kts"
+              if (app / "build.gradle.kts").exists()
+              else app / "build.gradle"
+          )
 
-          for p in settings_files:
-              if not p.is_file():
-                  continue
+          if not gradle_file.exists():
+              raise SystemExit("App Gradle file not found.")
 
-              text = p.read_text()
-
-              if "dependencyResolutionManagement" in text:
-                  match = re.search(
-                      r'dependencyResolutionManagement\s*\{',
-                      text
-                  )
-
-                  if match:
-                      start = match.end()
-                      depth = 1
-                      i = start
-
-                      while i < len(text) and depth:
-                          if text[i] == "{":
-                              depth += 1
-                          elif text[i] == "}":
-                              depth -= 1
-                          i += 1
-
-                      block = text[start:i-1]
-
-                      if "repositories" not in block:
-                          repos = (
-                              '\n    repositories {\n'
-                              '        google()\n'
-                              '        mavenCentral()\n'
-                              '    }\n'
-                          )
-                          text = text[:start] + repos + text[start:]
-                          p.write_text(text)
-                          print(f"Added dependency repositories: {p}")
-
-          print("Dependency and compatibility checks completed.")
+          print("Java/Kotlin compatibility check completed.")
           PY
 
-      - name: Diagnose Media3 dependency
+      - name: Diagnose Media3 dependencies
         shell: bash
         run: |
           set -euo pipefail
-
-          echo "Checking Media3 declarations..."
 
           grep -RInE \
             'media3-ui-compose|media3-ui:|media3Version|media3_version' \
@@ -202,20 +156,6 @@ jobs:
             --include='*.gradle' \
             --include='*.gradle.kts' \
             --include='*.toml' || true
-
-          echo "Checking repository configuration..."
-
-          for f in \
-            "$PROJECT_DIR/settings.gradle" \
-            "$PROJECT_DIR/settings.gradle.kts" \
-            "$PROJECT_DIR/build.gradle" \
-            "$PROJECT_DIR/build.gradle.kts"
-          do
-            if [ -f "$f" ]; then
-              echo "----- $f -----"
-              grep -nE 'google\(\)|mavenCentral\(\)|repositories|dependencyResolutionManagement' "$f" || true
-            fi
-          done
 
       - name: Build APK
         shell: bash
