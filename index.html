@@ -7,9 +7,8 @@
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- HLS & 3D Libraries -->
+    <!-- HLS Streaming Library -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
@@ -46,15 +45,9 @@
             min-height: 100vh;
             overflow-x: hidden;
             padding-bottom: 40px;
-        }
-
-        /* 3D Canvas Background */
-        #webgl-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1;
-            pointer-events: none;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.06) 0%, transparent 40%);
         }
 
         /* Top Navigation Header */
@@ -63,7 +56,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 16px 40px;
-            background: rgba(6, 8, 14, 0.9);
+            background: rgba(6, 8, 14, 0.95);
             backdrop-filter: blur(20px);
             position: sticky;
             top: 0;
@@ -210,7 +203,7 @@
             max-width: 600px;
         }
 
-        /* Expanded 3D Category Grid */
+        /* Expanded Category Grid */
         .quick-categories-grid-large {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -356,4 +349,56 @@
             display: flex; align-items: center; justify-content: space-between;
             cursor: pointer; transition: 0.2s;
             box-shadow: 0 4px 15px rgba(192, 18, 72, 0.25);
-            text-align: left; width: 10
+            text-align: left; width: 100%;
+        }
+
+        .settings-btn:hover { opacity: 0.92; transform: scale(1.02); }
+        .settings-btn-left { display: flex; align-items: center; gap: 15px; }
+        .settings-btn i { font-size: 18px; width: 24px; text-align: center; }
+
+        /* Sub Settings Forms */
+        .sub-setting-view {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sub-setting-view.active { display: flex; }
+
+        .form-group {
+            display: flex; flex-direction: column; gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px; font-weight: 700; color: var(--text-sub);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            background: #182032;
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .btn-submit {
+            background: var(--primary-blue);
+            color: #000; border: none;
+            padding: 14px; border-radius: 12px;
+            font-weight: 800; font-size: 14px;
+            cursor: pointer; margin-top: 10px;
+        }
+
+        .btn-back-settings {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff; border: none;
+            padding: 8px 14px; border-radius: 10px;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+        }
+
+        @media (max-width: 900px) {
+            .top-navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
+            .live
