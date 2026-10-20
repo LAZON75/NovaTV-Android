@@ -3,7 +3,8 @@ name: Build Nova TV APK
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,6 +13,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
       - name: Checkout repository
@@ -28,20 +33,30 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
-
-      - name: Accept Android licenses
+      - name: Install Android SDK packages
         shell: bash
         run: |
-          set -e
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          set -euo pipefail
+
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)"
+          fi
+
+          if [ -z "${SDKMANAGER:-}" ] || [ ! -f "$SDKMANAGER" ]; then
+            echo "ERROR: Android sdkmanager was not found on the runner."
+            echo "Available SDK directories:"
+            ls -la "$ANDROID_HOME" || true
+            exit 1
+          fi
+
+          yes | "$SDKMANAGER" --licenses || true
+
+          "$SDKMANAGER" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Find and extract Nova TV project ZIP
         shell: bash
@@ -53,7 +68,7 @@ jobs:
           ZIP_FILE="$(find "$GITHUB_WORKSPACE" -maxdepth 2 -type f -iname '*.zip' ! -path '*/project/*' | sort | head -n 1)"
 
           if [ -z "${ZIP_FILE:-}" ]; then
-            echo "ERROR: No project ZIP found in repository."
+            echo "ERROR: No project ZIP found in the repository."
             exit 1
           fi
 
@@ -63,7 +78,7 @@ jobs:
           APP_GRADLE="$(find "$GITHUB_WORKSPACE/project" -type f \( -name 'build.gradle.kts' -o -name 'build.gradle' \) -path '*/app/*' | head -n 1)"
 
           if [ -z "${APP_GRADLE:-}" ]; then
-            echo "ERROR: Could not find app Gradle file inside ZIP."
+            echo "ERROR: app/build.gradle was not found inside the ZIP."
             exit 1
           fi
 
@@ -83,18 +98,19 @@ jobs:
           from pathlib import Path
 
           root = Path(os.environ["PROJECT_DIR"])
+
           candidates = [
               root / "app" / "build.gradle.kts",
               root / "app" / "build.gradle"
           ]
 
           gradle_file = next(
-              (path for path in candidates if path.is_file()),
+              (p for p in candidates if p.is_file()),
               None
           )
 
           if gradle_file is None:
-              raise SystemExit("ERROR: app Gradle file not found.")
+              raise SystemExit("ERROR: app Gradle file was not found.")
 
           text = gradle_file.read_text(encoding="utf-8")
 
@@ -104,14 +120,14 @@ jobs:
               if "androidx.media3:media3-ui-compose" not in line
           ) + "\n"
 
-          # Align Java compatibility to Java 17.
+          # Align Java versions.
           text = re.sub(
               r"JavaVersion\.VERSION_(?:1_8|8|11|17)",
               "JavaVersion.VERSION_17",
               text
           )
 
-          # Align Kotlin JVM target to 17.
+          # Align Kotlin JVM target.
           text = re.sub(
               r'jvmTarget\s*=\s*["\'][^"\']+["\']',
               'jvmTarget = "17"',
@@ -120,29 +136,35 @@ jobs:
 
           if "compileOptions" not in text:
               match = re.search(r"android\s*\{", text)
-              if not match:
-                  raise SystemExit("ERROR: Android block not found.")
 
-              text = text[:match.end()] + """
+              if not match:
+                  raise SystemExit("ERROR: Android configuration block not found.")
+
+              addition = """
               compileOptions {
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
-              """ + text[match.end():]
+              """
+
+              text = text[:match.end()] + addition + text[match.end():]
 
           if "kotlinOptions" not in text:
               match = re.search(r"android\s*\{", text)
-              if not match:
-                  raise SystemExit("ERROR: Android block not found.")
 
-              text = text[:match.end()] + """
+              if not match:
+                  raise SystemExit("ERROR: Android configuration block not found.")
+
+              addition = """
               kotlinOptions {
                   jvmTarget = "17"
               }
-              """ + text[match.end():]
+              """
+
+              text = text[:match.end()] + addition + text[match.end():]
 
           gradle_file.write_text(text, encoding="utf-8")
-          print("Updated Java and Kotlin compatibility.")
+          print("Updated Java and Kotlin targets.")
           PY
 
       - name: Build debug APK
@@ -173,7 +195,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/output"
           cp "$APK_PATH" "$GITHUB_WORKSPACE/output/NovaTV-debug.apk"
 
-          echo "APK found successfully."
+          echo "APK created successfully."
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
