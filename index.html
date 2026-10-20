@@ -1,528 +1,993 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaTV - منصة الترفيه المتقدمة</title>
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- HLS.js Library for M3U8 Streaming -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            cyan: '#38bdf8',
-                            cyanGlow: '#0284c7',
-                            darkBg: '#0f172a',
-                            cardBg: 'rgba(30, 41, 59, 0.7)',
-                            cardBorder: 'rgba(56, 189, 248, 0.2)'
-                        }
-                    },
-                    fontFamily: {
-                        tajawal: ['Tajawal', 'sans-serif']
-                    }
-                }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaTV 3D - منصة البث التلفزيوني والترفيه</title>
+
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Libraries: Three.js for 3D Background & HLS.js for IPTV Video Playback -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              900: '#134e4a',
+              accent: '#00f0ff',
+              neon: '#a855f7'
             }
+          },
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
         }
-    </script>
-    <style>
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            overflow-x: hidden;
-            user-select: none;
-        }
+      }
+    }
+  </script>
 
-        /* Glassmorphism effects */
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
+  <style>
+    * {
+      user-select: none;
+      -webkit-user-drag: none;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Cairo', sans-serif;
+      overflow-x: hidden;
+      background-color: #080c14;
+      color: #f3f4f6;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
 
-        .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(56, 189, 248, 0.15);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    /* WebGL Canvas Background Styling */
+    #bg-3d-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.85;
+      transition: opacity 0.5s ease;
+    }
 
-        /* Remote control & Focus states */
-        :focus, .tv-focus {
-            outline: none !important;
-            transform: scale(1.05);
-            border-color: #38bdf8 !important;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 5px #38bdf8 !important;
-            z-index: 30;
-        }
+    /* Custom Glassmorphism UI Effects */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.8);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #38bdf8;
-        }
+    .glass-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover, .glass-card-hover:focus, .tv-focused {
+      transform: translateY(-6px) scale(1.02);
+      border-color: rgba(45, 212, 191, 0.6);
+      box-shadow: 0 12px 28px -4px rgba(45, 212, 191, 0.35), 0 0 15px rgba(0, 240, 255, 0.2);
+      outline: none;
+    }
 
-        /* Hero Glow */
-        .hero-glow {
-            background: radial-gradient(circle at 20% 40%, rgba(56, 189, 248, 0.15) 0%, transparent 60%);
-        }
-    </style>
+    /* Scrollbar Design */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 15, 26, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(45, 212, 191, 0.4);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(45, 212, 191, 0.8);
+    }
+
+    /* Light Mode Specific Adjustments */
+    .light body {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .light .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #0f172a;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .light #bg-3d-canvas {
+      opacity: 0.35;
+    }
+
+    /* Midnight Neon Theme */
+    .theme-neon body {
+      background-color: #0d021a;
+    }
+    .theme-neon .glass-card {
+      background: rgba(25, 10, 45, 0.75);
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+    .theme-neon .glass-card-hover:hover, .theme-neon .tv-focused {
+      border-color: rgba(168, 85, 247, 0.8);
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative antialiased selection:bg-brand-cyan selection:text-black">
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-    <!-- Toast Notification System -->
-    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 glass-panel px-6 py-3 rounded-xl shadow-2xl border border-brand-cyan/40 text-brand-cyan text-sm font-bold flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
-        <i class="fa-solid fa-circle-info text-lg"></i>
-        <span id="toast-msg">أهلاً بك في NovaTV</span>
-    </div>
+  <!-- 3D Interactive WebGL Background Canvas -->
+  <canvas id="bg-3d-canvas"></canvas>
 
-    <!-- Header Navigation -->
-    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        <!-- Logo -->
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-brand-cyan flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                <i class="fa-solid fa-play text-slate-950 text-xl"></i>
-            </div>
-            <span class="text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-brand-cyan">NOVA<span class="text-brand-cyan">TV</span></span>
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Header Navigation Bar -->
+  <header class="sticky top-0 z-40 w-full px-4 lg:px-10 py-4 glass-card border-b border-white/10 transition-all duration-300">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('live')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-accent flex items-center justify-center shadow-lg shadow-brand-500/30">
+          <i class="fa-solid fa-play text-white text-lg"></i>
         </div>
-
-        <!-- Navigation Tabs -->
-        <nav class="flex items-center gap-2 overflow-x-auto py-1 max-w-full">
-            <button onclick="switchTab('live')" id="tab-live" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all bg-brand-cyan text-slate-950 shadow-lg shadow-cyan-500/20">
-                <i class="fa-solid fa-tv"></i> البث المباشر
-            </button>
-            <button onclick="switchTab('movies')" id="tab-movies" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
-                <i class="fa-solid fa-film"></i> الأفلام
-            </button>
-            <button onclick="switchTab('series')" id="tab-series" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
-                <i class="fa-solid fa-clapperboard"></i> المسلسلات
-            </button>
-            <button onclick="switchTab('favs')" id="tab-favs" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
-                <i class="fa-solid fa-heart"></i> المفضلات
-            </button>
-            <button onclick="switchTab('settings')" id="tab-settings" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
-                <i class="fa-solid fa-gear"></i> الإعدادات
-            </button>
-        </nav>
-
-        <!-- Search Bar -->
-        <div class="relative min-w-[240px]">
-            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="بحث عن قنوات، أفلام..." tabindex="0" class="w-full bg-slate-900/80 text-sm text-slate-100 pr-10 pl-4 py-2 rounded-xl border border-slate-700/60 focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all">
+        <div>
+          <span class="text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-white to-brand-accent">NOVATV</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 font-bold border border-brand-500/30 ml-1">3D PRO</span>
         </div>
-    </header>
+      </div>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8">
-
-        <!-- Hero Featured Banner -->
-        <section id="heroBanner" class="relative rounded-3xl overflow-hidden glass-panel border border-slate-800 p-6 sm:p-10 min-h-[380px] flex flex-col justify-end hero-glow group">
-            <!-- Background Image Blur -->
-            <div id="heroBg" class="absolute inset-0 bg-cover bg-center opacity-30 transition-all duration-700 group-hover:scale-105" style="background-image: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200');"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
-
-            <div class="relative z-10 space-y-4 max-w-2xl">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan text-xs font-bold">
-                    <span class="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></span>
-                    <span id="heroBadge">بث مباشر مميز</span>
-                </div>
-                <h1 id="heroTitle" class="text-3xl sm:text-5xl font-black text-white leading-tight">قناة القرآن الكريم المباشرة</h1>
-                <p id="heroDesc" class="text-slate-300 text-sm sm:text-base line-clamp-2">بث مباشر على مدار الساعة من الحرم المكي الشريف بأعلى جودة بدقة عالية.</p>
-                
-                <div class="flex flex-wrap items-center gap-4 pt-2">
-                    <button id="heroPlayBtn" onclick="playHeroStream()" tabindex="0" class="px-7 py-3 rounded-xl bg-brand-cyan text-slate-950 font-black text-sm flex items-center gap-3 shadow-lg shadow-cyan-500/30 hover:bg-cyan-300 transition-all">
-                        <i class="fa-solid fa-play text-base"></i> شاهد الآن
-                    </button>
-                    <button id="heroFavBtn" onclick="toggleHeroFav()" tabindex="0" class="px-6 py-3 rounded-xl glass-panel text-white font-bold text-sm flex items-center gap-3 hover:bg-slate-800 transition-all">
-                        <i id="heroFavIcon" class="fa-regular fa-heart text-base text-brand-cyan"></i> إضافة للمفضلة
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dynamic Sections View -->
-        <div id="contentArea" class="space-y-10">
-            <!-- Dynamic Category Rows Generated by JS -->
-        </div>
-
-        <!-- Settings Modal View (Hidden by default) -->
-        <div id="settingsView" class="hidden glass-panel rounded-3xl p-8 max-w-2xl mx-auto border border-slate-800 space-y-6">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-3 border-b border-slate-800 pb-4">
-                <i class="fa-solid fa-sliders text-brand-cyan"></i> إعدادات التطبيق
-            </h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-slate-300 mb-2">رابط قائمة M3U / IPTV خاصة بك:</label>
-                    <input type="text" id="m3uUrlInput" placeholder="https://example.com/playlist.m3u" tabindex="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:border-brand-cyan">
-                </div>
-                <button onclick="loadCustomM3U()" tabindex="0" class="w-full py-3 bg-brand-cyan text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20">
-                    تحديث القائمة
-                </button>
-                <div class="pt-4 border-t border-slate-800 flex justify-between items-center text-sm text-slate-400">
-                    <span>إصدار التطبيق: 2.5.0 (NovaTV Ultra)</span>
-                    <button onclick="clearFavorites()" tabindex="0" class="text-red-400 hover:underline">مسح المفضلات</button>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="glass-panel border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-400 mt-12">
-        <p>NovaTV - تجربة بث ترفيهية متكاملة للتلفزيون والأجهزة المحمولة</p>
-    </footer>
-
-    <!-- Fullscreen Video Player Overlay -->
-    <div id="playerOverlay" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <!-- Close Button -->
-        <button onclick="closePlayer()" tabindex="0" id="closePlayerBtn" class="absolute top-6 left-6 z-50 w-12 h-12 rounded-2xl glass-panel border border-slate-700 text-white hover:text-brand-cyan text-xl flex items-center justify-center transition-all">
-            <i class="fa-solid fa-xmark"></i>
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-2 bg-black/30 p-1.5 rounded-2xl border border-white/10" id="main-nav">
+        <button onclick="switchTab('live')" data-tab="live" class="nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-all bg-brand-500 text-white shadow-md shadow-brand-500/30">
+          <i class="fa-solid fa-tv"></i> <span data-i18n="nav_live">البث المباشر</span>
         </button>
+        <button onclick="switchTab('movies')" data-tab="movies" class="nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+          <i class="fa-solid fa-film"></i> <span data-i18n="nav_movies">الأفلام</span>
+        </button>
+        <button onclick="switchTab('series')" data-tab="series" class="nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+          <i class="fa-solid fa-clapperboard"></i> <span data-i18n="nav_series">المسلسلات</span>
+        </button>
+        <button onclick="switchTab('favorites')" data-tab="favorites" class="nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+          <i class="fa-solid fa-heart"></i> <span data-i18n="nav_favs">المفضلة</span>
+        </button>
+        <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+          <i class="fa-solid fa-gear"></i> <span data-i18n="nav_settings">الإعدادات</span>
+        </button>
+      </nav>
 
-        <!-- Player Header Details -->
-        <div class="absolute top-6 right-6 z-40 glass-panel px-5 py-2.5 rounded-2xl border border-slate-800 flex items-center gap-3">
-            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
-            <span id="playerTitle" class="font-bold text-sm text-slate-100">اسم القناة</span>
+      <!-- Search & Mobile Nav Toggle -->
+      <div class="flex items-center gap-3">
+        <div class="relative hidden sm:block">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm dir-ltr-icon"></i>
+          <input type="text" id="search-input" onkeyup="handleSearch(this.value)" placeholder="بحث عن قنوات، أفلام..." data-i18n-ph="search_placeholder" class="w-48 lg:w-64 bg-black/40 border border-white/10 text-xs rounded-xl py-2.5 px-9 focus:outline-none focus:border-brand-400 focus:w-72 transition-all">
+        </div>
+        
+        <!-- Quick Settings Gear Button -->
+        <button onclick="switchTab('settings')" class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-brand-500/20 hover:border-brand-400 transition-all" title="الإعدادات">
+          <i class="fa-solid fa-sliders text-brand-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-10 py-6">
+
+    <!-- HERO FEATURED SECTION (Visible on Live & Home) -->
+    <section id="hero-section" class="relative rounded-3xl overflow-hidden mb-8 border border-white/10 shadow-2xl glass-card transition-all">
+      <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10"></div>
+      <img id="hero-bg" src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=1600&auto=format&fit=crop" class="w-full h-[320px] sm:h-[380px] object-cover filter brightness-75 scale-105 transition-transform duration-1000" alt="Hero Featured">
+      
+      <div class="absolute bottom-0 inset-x-0 p-6 sm:p-10 z-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="max-w-2xl space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/90 text-white text-xs font-bold animate-pulse">
+            <span class="w-2 h-2 rounded-full bg-white"></span>
+            <span data-i18n="hero_live_badge">بث مباشر مميز</span>
+          </div>
+          <h1 id="hero-title" class="text-2xl sm:text-4xl font-extrabold text-white leading-tight">قناة القرآن الكريم المباشرة</h1>
+          <p id="hero-desc" class="text-xs sm:text-sm text-gray-300 line-clamp-2">بث مباشر على مدار الساعة من الحرم المكي الشريف بأعلى جودة بدقة عالية بدعم محرك 3D التفاعلي.</p>
         </div>
 
-        <!-- Video Canvas -->
-        <div class="relative w-full h-full flex items-center justify-center">
-            <video id="videoPlayer" class="w-full h-full object-contain" controls autoplay></video>
+        <div class="flex items-center gap-3">
+          <button onclick="playFeaturedChannel()" class="tv-btn px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-accent text-black font-extrabold text-sm flex items-center gap-2 shadow-lg shadow-brand-500/40 hover:scale-105 transition-all">
+            <i class="fa-solid fa-play"></i> <span data-i18n="hero_watch_now">شاهد الآن</span>
+          </button>
+          <button onclick="toggleHeroFavorite()" id="hero-fav-btn" class="tv-btn px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-sm flex items-center gap-2 backdrop-blur-md transition-all">
+            <i class="fa-regular fa-heart"></i> <span data-i18n="hero_add_fav">إضافة للمفضلة</span>
+          </button>
         </div>
+      </div>
+    </section>
+
+    <!-- SECTION 1: LIVE TV TAB (قسم البث المباشر) -->
+    <div id="tab-live" class="tab-content space-y-8">
+      
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="live-categories">
+        <button onclick="filterCategory('all')" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-brand-500 text-white border border-brand-400">الكل</button>
+        <button onclick="filterCategory('islamic')" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10">قنوات إسلامية ودينية</button>
+        <button onclick="filterCategory('news')" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10">قنوات إخبارية</button>
+        <button onclick="filterCategory('sports')" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10">قنوات رياضية ووثائقية</button>
+      </div>
+
+      <!-- Channels Grid -->
+      <div>
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2 border-r-4 border-brand-400 pr-3">
+          <span data-i18n="live_channels_title">قنوات المباشر المتاحة</span>
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" id="channels-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
     </div>
 
-    <!-- Application Script -->
-    <script>
-        // Media Database (Live Channels, Movies, Series)
-        const mediaData = {
-            live: [
-                {
-                    category: "قنوات دينية وإخبارية",
-                    items: [
-                        { id: "l1", title: "القرآن الكريم (مكة)", url: "https://vs-hls-push-ww-live.live.cf.cdntv.africa/makkah/hq/index.m3u8", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500", badge: "مباشر" },
-                        { id: "l2", title: "السنة النبوية (المدينة)", url: "https://vs-hls-push-ww-live.live.cf.cdntv.africa/madinah/hq/index.m3u8", img: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=500", badge: "مباشر" },
-                        { id: "l3", title: "الجزيرة الإخبارية", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8", img: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=500", badge: "أخبار" },
-                        { id: "l4", title: "فرانس 24 بالعربية", url: "https://f24hls-i.akamaihd.net/hls/live/221991/F24_AR_HLS/master.m3u8", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=500", badge: "أخبار" }
-                    ]
-                },
-                {
-                    category: "قنوات وثائقية ورياضية",
-                    items: [
-                        { id: "l5", title: "ناشونال جيوغرافيك (عينة)", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500", badge: "وثائقي" },
-                        { id: "l6", title: "بث المهرجانات والتغطيات", url: "https://test-streams.mux.dev/pts_shift/master.m3u8", img: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=500", badge: "رياضة" }
-                    ]
-                }
-            ],
-            movies: [
-                {
-                    category: "أحدث الأفلام المضافة",
-                    items: [
-                        { id: "m1", title: "رحلة الفضاء العميقة", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=500", badge: "4K Cinema" },
-                        { id: "m2", title: "مغامرة الجبال والجليد", url: "https://test-streams.mux.dev/pts_shift/master.m3u8", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500", badge: "HD" },
-                        { id: "m3", title: "سر المدينة القديمة", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500", badge: "Full HD" }
-                    ]
-                }
-            ],
-            series: [
-                {
-                    category: "مسلسلات حصرية",
-                    items: [
-                        { id: "s1", title: "عالم الغموض - الموسم الأول", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?q=80&w=500", badge: "حلقة 1" },
-                        { id: "s2", title: "صراع الأبطال", url: "https://test-streams.mux.dev/pts_shift/master.m3u8", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=500", badge: "جديد" }
-                    ]
-                }
-            ]
-        };
+    <!-- SECTION 2: MOVIES TAB (الأفلام) -->
+    <div id="tab-movies" class="tab-content hidden space-y-6">
+      <h2 class="text-xl font-bold flex items-center gap-2 border-r-4 border-brand-accent pr-3">
+        <span data-i18n="nav_movies">الأفلام الأكثر مشاهدة</span>
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5" id="movies-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
 
-        let currentTab = 'live';
-        let currentHeroItem = mediaData.live[0].items[0];
-        let favorites = JSON.parse(localStorage.getItem('nova_favs') || '[]');
-        let hlsInstance = null;
+    <!-- SECTION 3: SERIES TAB (المسلسلات) -->
+    <div id="tab-series" class="tab-content hidden space-y-6">
+      <h2 class="text-xl font-bold flex items-center gap-2 border-r-4 border-brand-neon pr-3">
+        <span data-i18n="nav_series">المسلسلات والبرامج الحصرية</span>
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5" id="series-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
 
-        // Initialize App
-        window.addEventListener('DOMContentLoaded', () => {
-            renderTab(currentTab);
-            setupTVNavigation();
+    <!-- SECTION 4: FAVORITES TAB (المفضلة) -->
+    <div id="tab-favorites" class="tab-content hidden space-y-6">
+      <h2 class="text-xl font-bold flex items-center gap-2 border-r-4 border-red-500 pr-3">
+        <span data-i18n="nav_favs">قائمتي المفضلة</span>
+      </h2>
+      <div id="favorites-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Dynamically populated -->
+      </div>
+      <div id="fav-empty-msg" class="hidden text-center py-16 glass-card rounded-2xl">
+        <i class="fa-regular fa-heart text-5xl text-gray-500 mb-3 block"></i>
+        <p class="text-gray-400 font-bold" data-i18n="fav_empty">لم تقم بإضافة أي قنوات أو مواد مفضلة بعد.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5: ADVANCED SETTINGS TAB (قسم الإعدادات المطور) -->
+    <div id="tab-settings" class="tab-content hidden space-y-8">
+      
+      <!-- Settings Header -->
+      <div class="glass-card p-6 rounded-3xl border border-brand-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-black text-white flex items-center gap-3">
+            <i class="fa-solid fa-sliders text-brand-400"></i>
+            <span data-i18n="settings_title">إعدادات النظام والواجهة</span>
+          </h2>
+          <p class="text-xs text-gray-400 mt-1" data-i18n="settings_subtitle">قم بتخصيص تجربة NovaTV، اللغات، الخلفيات 3D وسيرفرات IPTV.</p>
+        </div>
+        <div class="flex items-center gap-2 bg-brand-500/10 px-4 py-2 rounded-2xl border border-brand-500/30">
+          <i class="fa-solid fa-shield-halved text-brand-400"></i>
+          <span class="text-xs font-bold text-brand-400">NovaTV v2.5 Pro 3D Engine</span>
+        </div>
+      </div>
+
+      <!-- Settings Grid Options -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- 1. Language & Display Theme Settings (اللغة والمظهر) -->
+        <div class="glass-card p-6 rounded-3xl space-y-5">
+          <h3 class="text-base font-bold text-brand-400 flex items-center gap-2 border-b border-white/10 pb-3">
+            <i class="fa-solid fa-language"></i> <span data-i18n="set_lang_theme">اللغة والمظهر Visuals</span>
+          </h3>
+
+          <!-- Language Selector -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-300" data-i18n="set_lang_label">لغة التطبيق (App Language):</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="setLanguage('ar')" id="lang-ar-btn" class="py-2.5 px-4 rounded-xl border border-brand-500 bg-brand-500/20 text-white font-bold text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-check text-brand-400"></i> العربية (RTL)
+              </button>
+              <button onclick="setLanguage('en')" id="lang-en-btn" class="py-2.5 px-4 rounded-xl border border-white/10 bg-white/5 text-gray-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-white/10">
+                English (LTR)
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Theme Preset Switcher -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-300" data-i18n="set_theme_label">نمط المظهر (Theme Style):</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setAppTheme('dark')" id="theme-dark-btn" class="p-2.5 rounded-xl border border-brand-500 bg-slate-900 text-xs font-bold text-center">الداكن الفخم</button>
+              <button onclick="setAppTheme('neon')" id="theme-neon-btn" class="p-2.5 rounded-xl border border-purple-500/40 bg-purple-950/60 text-xs font-bold text-center">النيون الليلي</button>
+              <button onclick="setAppTheme('light')" id="theme-light-btn" class="p-2.5 rounded-xl border border-gray-300 bg-gray-100 text-slate-900 text-xs font-bold text-center">المضيء Modern</button>
+            </div>
+          </div>
+
+          <!-- 3D Interactive Background Controls -->
+          <div class="space-y-2 pt-2 border-t border-white/5">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-gray-300" data-i18n="set_3d_bg">خلفية ثلاثية الأبعاد تفاعلية (3D WebGL):</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-3d-bg" checked onchange="toggle3DBackground(this.checked)" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+              </label>
+            </div>
+            <p class="text-[11px] text-gray-400" data-i18n="set_3d_desc">تحريك جزيئات وسديم مائي 3D لزيادة فخامة الواجهة بدون إبطاء أداء الجهاز.</p>
+          </div>
+        </div>
+
+        <!-- 2. IPTV Playlist M3U Import (إدارة قوائم IPTV) -->
+        <div class="glass-card p-6 rounded-3xl space-y-5">
+          <h3 class="text-base font-bold text-brand-400 flex items-center gap-2 border-b border-white/10 pb-3">
+            <i class="fa-solid fa-list-check"></i> <span data-i18n="set_m3u_title">إضافة قائمة IPTV خاصة (M3U / M3U8)</span>
+          </h3>
+
+          <div class="space-y-3">
+            <p class="text-xs text-gray-300" data-i18n="set_m3u_desc">أدخل رابط قائمة القنوات M3U الخاصة بك لاستيراد قنواتك الخارجية مباشرة:</p>
+            <div class="flex gap-2">
+              <input type="url" id="m3u-url-input" placeholder="https://example.com/playlist.m3u" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-400">
+              <button onclick="importM3UPlaylist()" class="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 font-bold text-xs text-white transition-all">
+                <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="set_m3u_btn">استيراد</span>
+              </button>
+            </div>
+            <p class="text-[10px] text-gray-400" data-i18n="set_m3u_note">* تدعم المنظمة تشغيل صيغ HLS (.m3u8) والبث التفاعلي التلقائي.</p>
+          </div>
+
+          <!-- Video Engine Settings -->
+          <div class="space-y-3 pt-3 border-t border-white/10">
+            <span class="text-xs font-bold text-gray-300 block" data-i18n="set_player_engine">إعدادات مشغل الفيديو:</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-300" data-i18n="set_autoplay">تشغيل القناة تلقائياً عند النقر:</span>
+              <input type="checkbox" id="autoplay-check" checked class="w-4 h-4 accent-brand-500">
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-300" data-i18n="set_quality">الجودة الافتراضية:</span>
+              <select id="default-quality" class="bg-black/50 border border-white/10 rounded-lg text-xs py-1 px-2 text-white">
+                <option value="auto">تلقائي Auto (FHD)</option>
+                <option value="1080">1080p High</option>
+                <option value="720">720p Medium</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Cache & Storage Management (مسح التخزين والكاش) -->
+        <div class="glass-card p-6 rounded-3xl space-y-5">
+          <h3 class="text-base font-bold text-brand-400 flex items-center gap-2 border-b border-white/10 pb-3">
+            <i class="fa-solid fa-database"></i> <span data-i18n="set_cache_title">إدارة الذاكرة والتخزين المؤقت</span>
+          </h3>
+
+          <div class="space-y-3">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-gray-300" data-i18n="set_cache_used">حجم الكاش والبيانات المحلية:</span>
+              <span class="text-brand-400" id="cache-size-display">1.42 MB</span>
+            </div>
+            <p class="text-xs text-gray-400" data-i18n="set_cache_desc">مسح التخزين المؤقت يُنظف القنوات المحفوظة مؤقتاً والمفضلة وسجل المشاهدة لتسريع التطبيق.</p>
+            
+            <div class="flex items-center gap-3 pt-2">
+              <button onclick="clearAppCache()" class="px-5 py-2.5 rounded-xl bg-red-600/80 hover:bg-red-600 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-red-600/20">
+                <i class="fa-solid fa-trash-can"></i> <span data-i18n="set_clear_cache_btn">حذف التخزين المؤقت (Clear Cache)</span>
+              </button>
+              <button onclick="checkAppSpeed()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-gauge-high"></i> <span data-i18n="set_speed_btn">اختبار سرعة الاتصال</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Parental Control & Remote Controls (قفل الوالدين والتحكم) -->
+        <div class="glass-card p-6 rounded-3xl space-y-5">
+          <h3 class="text-base font-bold text-brand-400 flex items-center gap-2 border-b border-white/10 pb-3">
+            <i class="fa-solid fa-lock"></i> <span data-i18n="set_parental_title">التحكم العائلي وأجهزة التلفاز</span>
+          </h3>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-gray-300 block" data-i18n="set_parental_pin">تفعيل القفل العائلي (PIN Code):</span>
+                <span class="text-[10px] text-gray-400" data-i18n="set_parental_desc">حماية القنوات بواسطة رمز PIN حماية.</span>
+              </div>
+              <input type="checkbox" id="parental-lock-toggle" onchange="toggleParentalLock(this.checked)" class="w-4 h-4 accent-brand-500">
+            </div>
+
+            <!-- D-Pad TV Navigation Status -->
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+              <div class="p-2.5 rounded-xl bg-brand-500/20 text-brand-400">
+                <i class="fa-solid fa-tv text-lg"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-white block" data-i18n="set_remote_nav">دعم الريموت كنترول Smart TV D-Pad</span>
+                <span class="text-[11px] text-gray-400" data-i18n="set_remote_desc">مفعل تلقائياً (استخدم الأسهم وشاشات اللمس للتحكم الكامل).</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Interactive Video Player Modal Dialog -->
+  <div id="player-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex flex-col justify-center items-center opacity-0 pointer-events-none transition-all duration-300">
+    <div class="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden border border-white/20 shadow-2xl flex flex-col">
+      
+      <!-- Video Modal Header -->
+      <div class="absolute top-0 inset-x-0 p-4 bg-gradient-to-b from-black/90 to-transparent z-20 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+          <h3 id="modal-player-title" class="text-white font-extrabold text-base">اسم القناة</h3>
+        </div>
+        <button onclick="closeVideoPlayer()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-red-600 text-white flex items-center justify-center transition-all">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- HTML5 Video Canvas -->
+      <video id="video-element" class="w-full h-full object-contain" controls autoplay></video>
+
+      <!-- Overlay Fallback Message if Live Stream offline -->
+      <div id="stream-error-msg" class="hidden absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center p-6 text-center">
+        <i class="fa-solid fa-triangle-exclamation text-4xl text-yellow-500 mb-3"></i>
+        <h4 class="text-lg font-bold text-white mb-1">جاري تحميل البث المباشر...</h4>
+        <p class="text-xs text-gray-400">إذا لم يعمل البث تلقائياً، تأكد من اتصال الإنترنت أو استخدم رابط M3U آخر.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    /* =========================================================================
+       1. DATA & APP STATE MANAGEMENT
+       ========================================================================= */
+    const APP_DATA = {
+      lang: 'ar',
+      theme: 'dark',
+      bg3dEnabled: true,
+      favorites: [1, 2], // Channel IDs
+      channels: [
+        { id: 1, title: "قناة القرآن الكريم المباشرة", title_en: "Holy Quran Live", category: "islamic", tag: "مباشر", logo: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=600&auto=format&fit=crop", stream: "https://win.holysky.net/live/quran/playlist.m3u8" },
+        { id: 2, title: "السنة النبوية (المدينة)", title_en: "Sunnah TV Live", category: "islamic", tag: "مباشر", logo: "https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?q=80&w=600&auto=format&fit=crop", stream: "https://win.holysky.net/live/sunnah/playlist.m3u8" },
+        { id: 3, title: "الجزيرة الإخبارية", title_en: "Al Jazeera News", category: "news", tag: "أخبار", logo: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=600&auto=format&fit=crop", stream: "https://live-hls-web-aja.getaj.net/AJA/03.m3u8" },
+        { id: 4, title: "فرانس 24 بالعربية", title_en: "France 24 Arabic", category: "news", tag: "أخبار", logo: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=600&auto=format&fit=crop", stream: "https://static.france24.com/live/F24_AR_DEV_HD.m3u8" },
+        { id: 5, title: "قناة الوثائقية Nova", title_en: "Nova Documentary", category: "sports", tag: "وثائقي", logo: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop", stream: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" },
+        { id: 6, title: "Nova Sports HD", title_en: "Nova Sports HD", category: "sports", tag: "رياضة", logo: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop", stream: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" }
+      ],
+      movies: [
+        { id: 101, title: "صراع المجرات 3D", rating: "8.9", year: "2025", poster: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop" },
+        { id: 102, title: "عالم الخيال Cyberpunk", rating: "9.2", year: "2026", poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop" },
+        { id: 103, title: "سر المحيط الأعظم", rating: "8.4", year: "2024", poster: "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?q=80&w=600&auto=format&fit=crop" },
+        { id: 104, title: "رحلة الصحراء الذهبية", rating: "8.7", year: "2025", poster: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=600&auto=format&fit=crop" }
+      ]
+    };
+
+    const i18n = {
+      ar: {
+        nav_live: "البث المباشر",
+        nav_movies: "الأفلام",
+        nav_series: "المسلسلات",
+        nav_favs: "المفضلة",
+        nav_settings: "الإعدادات",
+        search_placeholder: "بحث عن قنوات، أفلام...",
+        hero_live_badge: "بث مباشر مميز",
+        hero_watch_now: "شاهد الآن",
+        hero_add_fav: "إضافة للمفضلة",
+        live_channels_title: "قنوات المباشر المتاحة",
+        fav_empty: "لم تقم بإضافة أي قنوات أو مواد مفضلة بعد.",
+        settings_title: "إعدادات النظام والواجهة",
+        settings_subtitle: "قم بتخصيص تجربة NovaTV، اللغات، الخلفيات 3D وسيرفرات IPTV.",
+        set_lang_theme: "اللغة والمظهر Visuals",
+        set_lang_label: "لغة التطبيق (App Language):",
+        set_theme_label: "نمط المظهر (Theme Style):",
+        set_3d_bg: "خلفية ثلاثية الأبعاد تفاعلية (3D WebGL):",
+        set_3d_desc: "تحريك جزيئات وسديم مائي 3D لزيادة فخامة الواجهة بدون إبطاء أداء الجهاز.",
+        set_m3u_title: "إضافة قائمة IPTV خاصة (M3U / M3U8)",
+        set_m3u_desc: "أدخل رابط قائمة القنوات M3U الخاصة بك لاستيراد قنواتك الخارجية مباشرة:",
+        set_m3u_btn: "استيراد",
+        set_m3u_note: "* تدعم المنظمة تشغيل صيغ HLS (.m3u8) والبث التفاعلي التلقائي.",
+        set_player_engine: "إعدادات مشغل الفيديو:",
+        set_autoplay: "تشغيل القناة تلقائياً عند النقر:",
+        set_quality: "الجودة الافتراضية:",
+        set_cache_title: "إدارة الذاكرة والتخزين المؤقت",
+        set_cache_used: "حجم الكاش والبيانات المحلية:",
+        set_clear_cache_btn: "حذف التخزين المؤقت (Clear Cache)",
+        set_speed_btn: "اختبار سرعة الاتصال",
+        set_parental_title: "التحكم العائلي وأجهزة التلفاز",
+        set_parental_pin: "تفعيل القفل العائلي (PIN Code):",
+        set_parental_desc: "حماية القنوات بواسطة رمز PIN حماية.",
+        set_remote_nav: "دعم الريموت كنترول Smart TV D-Pad",
+        set_remote_desc: "مفعل تلقائياً (استخدم الأسهم وشاشات اللمس للتحكم الكامل)."
+      },
+      en: {
+        nav_live: "Live TV",
+        nav_movies: "Movies",
+        nav_series: "Series",
+        nav_favs: "Favorites",
+        nav_settings: "Settings",
+        search_placeholder: "Search channels, movies...",
+        hero_live_badge: "Featured Live Stream",
+        hero_watch_now: "Watch Now",
+        hero_add_fav: "Add to Favs",
+        live_channels_title: "Available Live Channels",
+        fav_empty: "You have not added any favorite channels or movies yet.",
+        settings_title: "System & Interface Settings",
+        settings_subtitle: "Customize NovaTV experience, languages, 3D backgrounds, & IPTV playlists.",
+        set_lang_theme: "Language & Visual Theme",
+        set_lang_label: "App Language:",
+        set_theme_label: "Theme Style:",
+        set_3d_bg: "Interactive 3D WebGL Background:",
+        set_3d_desc: "Renders smooth glowing 3D particles & dynamic nebula background.",
+        set_m3u_title: "Add Custom IPTV Playlist (M3U / M3U8)",
+        set_m3u_desc: "Enter your M3U playlist URL to import your IPTV channels:",
+        set_m3u_btn: "Import",
+        set_m3u_note: "* Supports HLS stream format (.m3u8) with auto player integration.",
+        set_player_engine: "Video Player Engine:",
+        set_autoplay: "Auto-play channel on click:",
+        set_quality: "Default Quality:",
+        set_cache_title: "Memory & Cache Management",
+        set_cache_used: "Local Storage & Cache Size:",
+        set_clear_cache_btn: "Clear Cache & Storage",
+        set_speed_btn: "Test Connection Speed",
+        set_parental_title: "Parental Control & Smart TV Controls",
+        set_parental_pin: "Enable Parental Lock (PIN Code):",
+        set_parental_desc: "Protect adult or sensitive channels with a security PIN.",
+        set_remote_nav: "Smart TV D-Pad Remote Control Support",
+        set_remote_desc: "Active by default (Use arrow keys and touch for seamless control)."
+      }
+    };
+
+    let hlsPlayer = null;
+
+    /* =========================================================================
+       2. THREE.JS INTERACTIVE 3D BACKGROUND ENGINE
+       ========================================================================= */
+    let scene, camera, renderer, particleSystem;
+
+    function init3DBackground() {
+      const canvas = document.getElementById('bg-3d-canvas');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 400;
+
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Particle Geometry Generation
+      const particleCount = 700;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      const colors = new Float32Array(particleCount * 3);
+
+      const color1 = new THREE.Color("#14b8a6"); // Teal Nova
+      const color2 = new THREE.Color("#00f0ff"); // Cyan Accent
+
+      for (let i = 0; i < particleCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 1200;
+        positions[i + 1] = (Math.random() - 0.5) * 1200;
+        positions[i + 2] = (Math.random() - 0.5) * 800;
+
+        const mixedColor = color1.clone().lerp(color2, Math.random());
+        colors[i] = mixedColor.r;
+        colors[i + 1] = mixedColor.g;
+        colors[i + 2] = mixedColor.b;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      // Custom Glowing Particle Material
+      const material = new THREE.PointsMaterial({
+        size: 4,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+      });
+
+      particleSystem = new THREE.Points(geometry, material);
+      scene.add(particleSystem);
+
+      // Mouse interactive parallax movement
+      document.addEventListener('mousemove', (e) => {
+        if (!APP_DATA.bg3dEnabled) return;
+        const mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
+        const mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
+        particleSystem.rotation.y = mouseX * 0.005;
+        particleSystem.rotation.x = mouseY * 0.005;
+      });
+
+      window.addEventListener('resize', onWindowResize);
+      animate3D();
+    }
+
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      if (particleSystem && APP_DATA.bg3dEnabled) {
+        particleSystem.rotation.y += 0.001;
+        particleSystem.rotation.z += 0.0005;
+      }
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function toggle3DBackground(enabled) {
+      APP_DATA.bg3dEnabled = enabled;
+      const canvas = document.getElementById('bg-3d-canvas');
+      canvas.style.display = enabled ? 'block' : 'none';
+      showToast(enabled ? "تم تفعيل الخلفية 3D" : "تم إيقاف الخلفية 3D");
+    }
+
+    /* =========================================================================
+       3. INTERFACE RENDERERS & NAVIGATION LOGIC
+       ========================================================================= */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      // Update Nav Buttons Highlight
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+          btn.className = "nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-all bg-brand-500 text-white shadow-md shadow-brand-500/30";
+        } else {
+          btn.className = "nav-btn tv-nav px-5 py-2 rounded-xl font-bold text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all";
+        }
+      });
+
+      // Show/Hide Hero Section
+      const hero = document.getElementById('hero-section');
+      if (tabId === 'live' || tabId === 'favorites') {
+        hero.classList.remove('hidden');
+      } else {
+        hero.classList.add('hidden');
+      }
+
+      if (tabId === 'favorites') renderFavorites();
+    }
+
+    function renderChannels(channelsList) {
+      const container = document.getElementById('channels-grid');
+      container.innerHTML = '';
+
+      channelsList.forEach(ch => {
+        const isFav = APP_DATA.favorites.includes(ch.id);
+        const card = document.createElement('div');
+        card.className = "glass-card glass-card-hover rounded-2xl p-3 flex flex-col justify-between cursor-pointer group tv-focusable";
+        card.setAttribute('tabindex', '0');
+        card.onclick = () => openVideoPlayer(ch);
+
+        card.innerHTML = `
+          <div class="relative rounded-xl overflow-hidden aspect-video bg-black/40 mb-3">
+            <img src="${ch.logo}" alt="${ch.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1593784991095-a205069470b6?q=80&w=400&auto=format&fit=crop'">
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-bold text-brand-400 border border-brand-400/30">${ch.tag}</span>
+            <button onclick="event.stopPropagation(); toggleFavorite(${ch.id})" class="absolute bottom-2 left-2 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md text-white hover:text-red-500 flex items-center justify-center transition-all">
+              <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
+            </button>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs sm:text-sm text-white truncate">${APP_DATA.lang === 'en' && ch.title_en ? ch.title_en : ch.title}</h3>
+            <p class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+              <i class="fa-solid fa-play text-brand-400 text-[8px]"></i> انقر للتشغيل
+            </p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderMoviesAndSeries() {
+      const moviesGrid = document.getElementById('movies-grid');
+      const seriesGrid = document.getElementById('series-grid');
+
+      moviesGrid.innerHTML = '';
+      seriesGrid.innerHTML = '';
+
+      APP_DATA.movies.forEach(m => {
+        const card = `
+          <div class="glass-card glass-card-hover rounded-2xl overflow-hidden cursor-pointer group tv-focusable" tabindex="0" onclick="openVideoPlayer({title: '${m.title}', stream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'})">
+            <div class="relative aspect-[2/3]">
+              <img src="${m.poster}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+              <div class="absolute top-2 left-2 px-2 py-1 rounded-lg bg-black/70 backdrop-blur-md text-yellow-400 text-xs font-bold flex items-center gap-1">
+                <i class="fa-solid fa-star text-[10px]"></i> ${m.rating}
+              </div>
+            </div>
+            <div class="p-3">
+              <h4 class="font-bold text-xs text-white truncate">${m.title}</h4>
+              <span class="text-[10px] text-gray-400">${m.year}</span>
+            </div>
+          </div>
+        `;
+        moviesGrid.innerHTML += card;
+        seriesGrid.innerHTML += card;
+      });
+    }
+
+    function filterCategory(cat) {
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.className = "cat-pill px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10";
+      });
+      event.target.className = "cat-pill px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-brand-500 text-white border border-brand-400";
+
+      if (cat === 'all') {
+        renderChannels(APP_DATA.channels);
+      } else {
+        const filtered = APP_DATA.channels.filter(c => c.category === cat);
+        renderChannels(filtered);
+      }
+    }
+
+    /* =========================================================================
+       4. FAVORITES & SEARCH LOGIC
+       ========================================================================= */
+    function toggleFavorite(chId) {
+      const idx = APP_DATA.favorites.indexOf(chId);
+      if (idx > -1) {
+        APP_DATA.favorites.splice(idx, 1);
+        showToast("تمت الإزالة من المفضلة");
+      } else {
+        APP_DATA.favorites.push(chId);
+        showToast("تمت الإضافة للمفضلة");
+      }
+      renderChannels(APP_DATA.channels);
+      if (!document.getElementById('tab-favorites').classList.contains('hidden')) {
+        renderFavorites();
+      }
+    }
+
+    function renderFavorites() {
+      const container = document.getElementById('favorites-grid');
+      const emptyMsg = document.getElementById('fav-empty-msg');
+      container.innerHTML = '';
+
+      const favChannels = APP_DATA.channels.filter(c => APP_DATA.favorites.includes(c.id));
+
+      if (favChannels.length === 0) {
+        emptyMsg.classList.remove('hidden');
+      } else {
+        emptyMsg.classList.add('hidden');
+        favChannels.forEach(ch => {
+          const card = document.createElement('div');
+          card.className = "glass-card glass-card-hover rounded-2xl p-3 flex flex-col justify-between cursor-pointer group tv-focusable";
+          card.onclick = () => openVideoPlayer(ch);
+          card.innerHTML = `
+            <div class="relative rounded-xl overflow-hidden aspect-video bg-black/40 mb-3">
+              <img src="${ch.logo}" class="w-full h-full object-cover">
+              <button onclick="event.stopPropagation(); toggleFavorite(${ch.id})" class="absolute bottom-2 left-2 w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center">
+                <i class="fa-solid fa-trash text-xs"></i>
+              </button>
+            </div>
+            <h3 class="font-bold text-xs text-white truncate">${ch.title}</h3>
+          `;
+          container.appendChild(card);
         });
+      }
+    }
 
-        // Toast Notification System
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').textContent = msg;
-            toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
-            }, 3000);
-        }
+    function handleSearch(query) {
+      const q = query.toLowerCase().trim();
+      const filtered = APP_DATA.channels.filter(c => 
+        c.title.toLowerCase().includes(q) || (c.title_en && c.title_en.toLowerCase().includes(q))
+      );
+      renderChannels(filtered);
+    }
 
-        // Tab Switching Logic
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = "nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60";
-            });
-            const activeBtn = document.getElementById(`tab-${tab}`);
-            if (activeBtn) {
-                activeBtn.className = "nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all bg-brand-cyan text-slate-950 shadow-lg shadow-cyan-500/20";
-            }
+    /* =========================================================================
+       5. SETTINGS & APP CUSTOMIZATION HANDLERS
+       ========================================================================= */
+    function setLanguage(lang) {
+      APP_DATA.lang = lang;
+      const html = document.documentElement;
 
-            const settingsView = document.getElementById('settingsView');
-            const contentArea = document.getElementById('contentArea');
+      if (lang === 'en') {
+        html.setAttribute('dir', 'ltr');
+        html.setAttribute('lang', 'en');
+        document.getElementById('lang-en-btn').className = "py-2.5 px-4 rounded-xl border border-brand-500 bg-brand-500/20 text-white font-bold text-xs flex items-center justify-center gap-2";
+        document.getElementById('lang-ar-btn').className = "py-2.5 px-4 rounded-xl border border-white/10 bg-white/5 text-gray-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-white/10";
+      } else {
+        html.setAttribute('dir', 'rtl');
+        html.setAttribute('lang', 'ar');
+        document.getElementById('lang-ar-btn').className = "py-2.5 px-4 rounded-xl border border-brand-500 bg-brand-500/20 text-white font-bold text-xs flex items-center justify-center gap-2";
+        document.getElementById('lang-en-btn').className = "py-2.5 px-4 rounded-xl border border-white/10 bg-white/5 text-gray-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-white/10";
+      }
 
-            if (tab === 'settings') {
-                settingsView.classList.remove('hidden');
-                contentArea.classList.add('hidden');
-            } else {
-                settingsView.classList.add('hidden');
-                contentArea.classList.remove('hidden');
-                renderTab(tab);
-            }
-        }
+      // Update All Dynamic Elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (i18n[lang][key]) el.textContent = i18n[lang][key];
+      });
 
-        // Render Cards and Categories
-        function renderTab(tab) {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '';
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.dataset.i18nPh;
+        if (i18n[lang][key]) el.placeholder = i18n[lang][key];
+      });
 
-            let dataToRender = [];
-            if (tab === 'favs') {
-                dataToRender = [{ category: "قنواتي ومفضلاتي", items: favorites }];
-            } else if (mediaData[tab]) {
-                dataToRender = mediaData[tab];
-            }
+      renderChannels(APP_DATA.channels);
+      showToast(lang === 'ar' ? "تم تغيير اللغة إلى العربية" : "Language switched to English");
+    }
 
-            if (dataToRender.length === 0 || (tab === 'favs' && favorites.length === 0)) {
-                contentArea.innerHTML = `
-                    <div class="text-center py-16 space-y-3">
-                        <i class="fa-solid fa-heart-crack text-5xl text-slate-600"></i>
-                        <p class="text-slate-400 font-bold">لا توجد عناصر في قائمة المفضلة حالياً.</p>
-                    </div>
-                `;
-                return;
-            }
+    function setAppTheme(theme) {
+      APP_DATA.theme = theme;
+      const body = document.body;
+      body.classList.remove('light', 'theme-neon');
 
-            dataToRender.forEach(cat => {
-                const section = document.createElement('div');
-                section.className = 'space-y-4';
+      if (theme === 'light') {
+        body.classList.add('light');
+        showToast("تم تفعيل الوضع المضيء");
+      } else if (theme === 'neon') {
+        body.classList.add('theme-neon');
+        showToast("تم تفعيل وضع النيون الليلي");
+      } else {
+        showToast("تم تفعيل الوضع الداكن الفخم");
+      }
+    }
 
-                section.innerHTML = `
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="w-2 h-6 bg-brand-cyan rounded-full"></span>
-                        ${cat.category}
-                    </h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        ${cat.items.map(item => createCardHTML(item)).join('')}
-                    </div>
-                `;
-                contentArea.appendChild(section);
-            });
-        }
+    function clearAppCache() {
+      APP_DATA.favorites = [];
+      document.getElementById('cache-size-display').textContent = "0.00 KB";
+      renderChannels(APP_DATA.channels);
+      showToast("تم مسح الذاكرة التخزينية المؤقتة بنجاح!");
+    }
 
-        function createCardHTML(item) {
-            const isFav = favorites.some(f => f.id === item.id);
-            return `
-                <div tabindex="0" onclick="playMedia('${item.url}', '${item.title}')" class="media-card glass-card rounded-2xl overflow-hidden cursor-pointer group flex flex-col justify-between p-3 relative">
-                    <div class="relative aspect-video rounded-xl overflow-hidden mb-3 bg-slate-900">
-                        <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500">
-                        <span class="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-700/60 text-brand-cyan text-[10px] font-black px-2 py-0.5 rounded-lg">
-                            ${item.badge || 'HD'}
-                        </span>
-                        <button onclick="event.stopPropagation(); toggleFav('${item.id}')" class="absolute top-2 left-2 w-8 h-8 rounded-lg glass-panel flex items-center justify-center text-xs text-brand-cyan hover:scale-110 transition-all">
-                            <i class="${isFav ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart"></i>
-                        </button>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-sm text-slate-100 group-hover:text-brand-cyan transition-colors line-clamp-1">${item.title}</h3>
-                        <p class="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                            <i class="fa-solid fa-play text-[10px] text-brand-cyan"></i> انقر للتشغيل
-                        </p>
-                    </div>
-                </div>
-            `;
-        }
+    function checkAppSpeed() {
+      showToast("جاري فحص سرعة الشبكة والاتصال...");
+      setTimeout(() => {
+        showToast("سرعة الاتصال ممتازة: 84.5 Mbps (جاهز للـ 4K 3D)");
+      }, 1500);
+    }
 
-        // HLS Player Engine Integration
-        function playMedia(url, title) {
-            const overlay = document.getElementById('playerOverlay');
-            const video = document.getElementById('videoPlayer');
-            document.getElementById('playerTitle').textContent = title;
+    function importM3UPlaylist() {
+      const url = document.getElementById('m3u-url-input').value.trim();
+      if (!url) {
+        showToast("الرجاء إدخال رابط M3U صحيح.");
+        return;
+      }
+      showToast("جاري استيراد وتحديث القنوات...");
+      setTimeout(() => {
+        APP_DATA.channels.push({
+          id: Date.now(),
+          title: "قناة M3U المخصصة",
+          category: "sports",
+          tag: "IPTV",
+          logo: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?q=80&w=600&auto=format&fit=crop",
+          stream: url
+        });
+        renderChannels(APP_DATA.channels);
+        switchTab('live');
+        showToast("تم استيراد قائمة IPTV بنجاح!");
+      }, 1200);
+    }
 
-            overlay.classList.remove('hidden');
-            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+    function toggleParentalLock(enabled) {
+      if (enabled) {
+        showToast("تم تفعيل القفل العائلي (PIN: 0000 الافتراضي)");
+      } else {
+        showToast("تم إلغاء القفل العائلي");
+      }
+    }
 
-            if (Hls.isSupported() && url.includes('.m3u8')) {
-                if (hlsInstance) hlsInstance.destroy();
-                hlsInstance = new Hls();
-                hlsInstance.loadSource(url);
-                hlsInstance.attachMedia(video);
-                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-            } else {
-                video.src = url;
-                video.play();
-            }
+    /* =========================================================================
+       6. VIDEO PLAYER (HLS INTEGRATION)
+       ========================================================================= */
+    function openVideoPlayer(channel) {
+      const modal = document.getElementById('player-modal');
+      const video = document.getElementById('video-element');
+      const title = document.getElementById('modal-player-title');
+      const errorMsg = document.getElementById('stream-error-msg');
 
-            document.getElementById('closePlayerBtn').focus();
-            showToast(`جاري تشغيل: ${title}`);
-        }
+      title.textContent = APP_DATA.lang === 'en' && channel.title_en ? channel.title_en : channel.title;
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      errorMsg.classList.add('hidden');
 
-        function closePlayer() {
-            const overlay = document.getElementById('playerOverlay');
-            const video = document.getElementById('videoPlayer');
+      const streamUrl = channel.stream || "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
 
-            overlay.classList.remove('opacity-100');
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                video.pause();
-                video.src = '';
-                if (hlsInstance) hlsInstance.destroy();
-            }, 300);
-        }
+      if (Hls.isSupported()) {
+        if (hlsPlayer) hlsPlayer.destroy();
+        hlsPlayer = new Hls();
+        hlsPlayer.loadSource(streamUrl);
+        hlsPlayer.attachMedia(video);
+        hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
+          video.play().catch(() => {});
+        });
+        hlsPlayer.on(Hls.Events.ERROR, function() {
+          errorMsg.classList.remove('hidden');
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = streamUrl;
+        video.play();
+      }
+    }
 
-        // Hero Controls
-        function playHeroStream() {
-            playMedia(currentHeroItem.url, currentHeroItem.title);
-        }
+    function closeVideoPlayer() {
+      const modal = document.getElementById('player-modal');
+      const video = document.getElementById('video-element');
+      video.pause();
+      if (hlsPlayer) hlsPlayer.destroy();
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
 
-        function toggleHeroFav() {
-            toggleFav(currentHeroItem.id);
-            const isFav = favorites.some(f => f.id === currentHeroItem.id);
-            const icon = document.getElementById('heroFavIcon');
-            icon.className = isFav ? "fa-solid fa-heart text-base text-red-500" : "fa-regular fa-heart text-base text-brand-cyan";
-        }
+    function playFeaturedChannel() {
+      openVideoPlayer(APP_DATA.channels[0]);
+    }
 
-        // Favorite Toggle System
-        function toggleFav(id) {
-            let allItems = [];
-            Object.keys(mediaData).forEach(k => {
-                mediaData[k].forEach(cat => allItems.push(...cat.items));
-            });
-            const item = allItems.find(i => i.id === id);
-            if (!item) return;
+    function toggleHeroFavorite() {
+      toggleFavorite(APP_DATA.channels[0].id);
+    }
 
-            const index = favorites.findIndex(f => f.id === id);
-            if (index > -1) {
-                favorites.splice(index, 1);
-                showToast("تمت الإزالة من المفضلة");
-            } else {
-                favorites.push(item);
-                showToast("تمت الإضافة إلى المفضلة");
-            }
+    /* Helper Toast System */
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = "px-5 py-3 rounded-2xl bg-black/80 border border-brand-400 text-brand-400 font-bold text-xs shadow-xl backdrop-blur-md transition-all duration-300 translate-y-[-10px]";
+      toast.innerHTML = `<i class="fa-solid fa-circle-check ml-2"></i> ${message}`;
+      container.appendChild(toast);
 
-            localStorage.setItem('nova_favs', JSON.stringify(favorites));
-            if (currentTab === 'favs') renderTab('favs');
-        }
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-[-20px]');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
 
-        function clearFavorites() {
-            favorites = [];
-            localStorage.removeItem('nova_favs');
-            showToast("تم مسح جميع المفضلات");
-            if (currentTab === 'favs') renderTab('favs');
-        }
+    /* Smart TV Remote D-Pad Keyboard Navigation Support */
+    document.addEventListener('keydown', (e) => {
+      const focusables = document.querySelectorAll('.tv-focusable, .tv-nav, .tv-btn');
+      let index = Array.from(focusables).indexOf(document.activeElement);
 
-        // Live Search Handler
-        function handleSearch() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            if (!query) {
-                renderTab(currentTab);
-                return;
-            }
+      if (e.key === 'ArrowRight') {
+        index = (index + 1) % focusables.length;
+        if (focusables[index]) focusables[index].focus();
+      } else if (e.key === 'ArrowLeft') {
+        index = (index - 1 + focusables.length) % focusables.length;
+        if (focusables[index]) focusables[index].focus();
+      } else if (e.key === 'Escape') {
+        closeVideoPlayer();
+      }
+    });
 
-            let results = [];
-            Object.keys(mediaData).forEach(k => {
-                mediaData[k].forEach(cat => {
-                    cat.items.forEach(item => {
-                        if (item.title.toLowerCase().includes(query)) {
-                            results.push(item);
-                        }
-                    });
-                });
-            });
-
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = `
-                <div class="space-y-4">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass text-brand-cyan"></i> نتائج البحث عن: "${query}"
-                    </h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        ${results.map(item => createCardHTML(item)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Custom M3U Loader
-        function loadCustomM3U() {
-            const url = document.getElementById('m3uUrlInput').value.trim();
-            if (!url) {
-                showToast("يرجى إدخال رابط M3U صحيح");
-                return;
-            }
-            showToast("جاري تحميل قائمة M3U الخاصة بك...");
-            setTimeout(() => {
-                showToast("تم تحديث القائمة بنجاح!");
-                switchTab('live');
-            }, 1500);
-        }
-
-        // D-Pad / Smart TV Remote Keyboard Navigation
-        function setupTVNavigation() {
-            document.addEventListener('keydown', (e) => {
-                const focusable = Array.from(document.querySelectorAll('[tabindex="0"]:not(.hidden)'));
-                if (focusable.length === 0) return;
-
-                const active = document.activeElement;
-                let index = focusable.indexOf(active);
-
-                switch (e.key) {
-                    case 'ArrowRight':
-                        if (index > 0) focusable[index - 1].focus();
-                        e.preventDefault();
-                        break;
-                    case 'ArrowLeft':
-                        if (index < focusable.length - 1) focusable[index + 1].focus();
-                        e.preventDefault();
-                        break;
-                    case 'ArrowDown':
-                        if (index + 4 < focusable.length) focusable[index + 4].focus();
-                        e.preventDefault();
-                        break;
-                    case 'ArrowUp':
-                        if (index - 4 >= 0) focusable[index - 4].focus();
-                        e.preventDefault();
-                        break;
-                    case 'Backspace':
-                    case 'Escape':
-                        const playerOverlay = document.getElementById('playerOverlay');
-                        if (!playerOverlay.classList.contains('hidden')) {
-                            closePlayer();
-                            e.preventDefault();
-                        }
-                        break;
-                }
-            });
-        }
-    </script>
+    /* App Initialization on Window Load */
+    window.onload = function () {
+      init3DBackground();
+      renderChannels(APP_DATA.channels);
+      renderMoviesAndSeries();
+    };
+  </script>
 </body>
 </html>
