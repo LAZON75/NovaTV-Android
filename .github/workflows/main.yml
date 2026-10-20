@@ -41,7 +41,6 @@ jobs:
       - name: Extract project
         run: |
           unzip -q NovaTV-Android-Studio.zip -d project
-          find project -name build.gradle.kts
           test -f project/NovaTV-Android-Studio/app/build.gradle.kts
 
       - name: Update Media3 dependencies
