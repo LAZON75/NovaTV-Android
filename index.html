@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamVibe PRO - NextGen IPTV Experience</title>
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- HLS Streaming Library -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <style>
@@ -50,7 +48,6 @@
                 radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.06) 0%, transparent 40%);
         }
 
-        /* Top Navigation Header */
         .top-navbar {
             display: flex;
             align-items: center;
@@ -163,7 +160,6 @@
             color: #000;
         }
 
-        /* Views */
         .view-section {
             display: none;
             padding: 25px 40px;
@@ -171,7 +167,6 @@
 
         .view-section.active { display: block; }
 
-        /* Large Cinema Banner */
         .hero-banner-large {
             position: relative;
             width: 100%;
@@ -203,7 +198,6 @@
             max-width: 600px;
         }
 
-        /* Expanded Category Grid */
         .quick-categories-grid-large {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -247,7 +241,6 @@
         .category-card-overlay-large i { font-size: 26px; }
         .category-card-overlay-large span { font-size: 20px; font-weight: 800; }
 
-        /* Media Grids */
         .media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -265,7 +258,6 @@
         .media-card img { width: 100%; height: 230px; object-fit: cover; }
         .media-card-body { padding: 12px; }
 
-        /* Live TV Layout */
         .live-layout {
             display: grid;
             grid-template-columns: 460px 1fr;
@@ -297,7 +289,6 @@
         }
         .channel-pro-card:hover { border-color: var(--primary-blue); background: rgba(0,210,255,0.1); }
 
-        /* Settings Modal & Sub-Modals Structure */
         .settings-modal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -356,7 +347,6 @@
         .settings-btn-left { display: flex; align-items: center; gap: 15px; }
         .settings-btn i { font-size: 18px; width: 24px; text-align: center; }
 
-        /* Sub Settings Forms */
         .sub-setting-view {
             display: none;
             flex-direction: column;
@@ -366,39 +356,4 @@
         .sub-setting-view.active { display: flex; }
 
         .form-group {
-            display: flex; flex-direction: column; gap: 8px;
-        }
-
-        .form-group label {
-            font-size: 13px; font-weight: 700; color: var(--text-sub);
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            background: #182032;
-            border: 1px solid var(--border-subtle);
-            color: #fff;
-            padding: 12px 15px;
-            border-radius: 12px;
-            font-size: 14px;
-        }
-
-        .btn-submit {
-            background: var(--primary-blue);
-            color: #000; border: none;
-            padding: 14px; border-radius: 12px;
-            font-weight: 800; font-size: 14px;
-            cursor: pointer; margin-top: 10px;
-        }
-
-        .btn-back-settings {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff; border: none;
-            padding: 8px 14px; border-radius: 10px;
-            font-size: 13px; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; gap: 6px;
-        }
-
-        @media (max-width: 900px) {
-            .top-navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
-            .live
+            display: flex; flex-direction: column; gap: 
