@@ -55,7 +55,7 @@
             position: relative;
         }
 
-        /* 3D Animated Background Canvas filling empty spaces */
+        /* 3D Animated Background Canvas */
         #webgl-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -420,7 +420,7 @@
 </head>
 <body>
 
-    <!-- 3D Animated Background Canvas Filling Empty Spaces -->
+    <!-- 3D Animated Background Canvas -->
     <canvas id="webgl-canvas"></canvas>
 
     <!-- Navigation Header -->
@@ -569,8 +569,8 @@
                     <input type="text" id="m3uNameInput" class="form-input" placeholder="Ex: Mon IPTV Premium">
                 </div>
                 <div class="form-group">
-                    <label data-i18n="m3uUrlLabel">Lien URL (M3U / Xtream Codes)</label>
-                    <input type="url" class="form-input" id="m3uUrlInput" placeholder="https://example.com/get.php?username=...">
+                    <label data-i18n="m3uUrlLabel">Lien URL (M3U / Xtream Codes / .m3u8 مباشرة)</label>
+                    <input type="url" class="form-input" id="m3uUrlInput" placeholder="ضع رابط القناة المباشر أو ملف m3u هنا...">
                 </div>
                 <button class="btn-submit" onclick="saveM3uPlaylist()" data-i18n="m3uBtnSubmit">Charger la liste / تحميل</button>
             </div>
@@ -673,7 +673,7 @@
                 libMovies: "مكتبة الأفلام", libSeries: "المسلسلات والمواسم", libAnimes: "الأنمي والأطفال",
                 liveHd: "البث المباشر HD", settingsTitle: "الإعدادات",
                 setM3u: "إضافة قائمة M3U", setParental: "الرقابة الأبوية", setLang: "اللغة", setTheme: "المظهر", setPlayer: "مشغل خارجي", setHistory: "مسح السجل",
-                backBtn: "رجوع", m3uNameLabel: "اسم القائمة", m3uUrlLabel: "رابط M3U / Xtream Codes", m3uBtnSubmit: "تحميل القائمة",
+                backBtn: "رجوع", m3uNameLabel: "اسم القائمة", m3uUrlLabel: "رابط البث المباشر أو ملف M3U", m3uBtnSubmit: "تحميل القائمة",
                 pinLabel: "الرمز السري (4 أرقام)", saveBtn: "حفظ", themeLabel: "اختر المظهر", applyBtn: "تطبيق",
                 playerLabel: "المشغل الافتراضي", confirmBtn: "تأكيد", historyDesc: "هل تريد حقاً مسح سجل المشاهدة وإفراغ الذاكرة المؤقتة؟", historyBtn: "مسح الكل"
             }
@@ -842,7 +842,7 @@
         }
 
         function changeLanguage(lang) {
-            localStorage.setItem('app_lang', lang);
+            localStorage.getItem('app_lang') || 'fr';
             const t = translations[lang];
             if (!t) return;
 
@@ -865,18 +865,19 @@
 
         function saveM3uPlaylist() {
             const urlInput = document.getElementById('m3uUrlInput').value.trim();
-            const nameInput = document.getElementById('m3uNameInput').value.trim() || "IPTV Custom";
+            const nameInput = document.getElementById('m3uNameInput').value.trim() || "قناة جديدة";
             
             if(!urlInput) {
-                alert('الرجاء إدخال رابط M3U صحيح!');
+                alert('الرجاء إدخال رابط بث مباشر صحيح ينتهي بـ m3u8!');
                 return;
             }
 
+            // إضافة الرابط المباشر إلى قائمة القنوات فوراً لتشغيله
             defaultChannels.unshift({ name: nameInput, flag: "🌐", url: urlInput });
             renderChannels(defaultChannels);
             playLive(urlInput, nameInput);
             
-            alert('تمت إضافة القناة بنجاح وتشغيلها!');
+            alert('تمت إضافة وتشغيل القناة بنجاح!');
             closeSettings();
             switchView('liveView', document.querySelector('.nav-pill:last-child'));
         }
