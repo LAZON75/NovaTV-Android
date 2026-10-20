@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="fr" dir="ltr">
+<html lang="fr" dir="ltr" id="appHtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamVibe PRO - NextGen IPTV Experience</title>
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- HLS & 3D Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
@@ -27,6 +31,12 @@
             --btn-settings: #d60060;
         }
 
+        [data-theme="cyber"] {
+            --primary-blue: #00ffcc;
+            --primary-glow: rgba(0, 255, 204, 0.5);
+            --btn-settings: #0088cc;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -42,17 +52,24 @@
             min-height: 100vh;
             overflow-x: hidden;
             padding-bottom: 40px;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.06) 0%, transparent 40%);
         }
 
+        /* 3D Canvas Background */
+        #webgl-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Top Navigation Header */
         .top-navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 16px 40px;
-            background: rgba(6, 8, 14, 0.95);
+            background: rgba(6, 8, 14, 0.9);
             backdrop-filter: blur(20px);
             position: sticky;
             top: 0;
@@ -159,6 +176,7 @@
             color: #000;
         }
 
+        /* Views */
         .view-section {
             display: none;
             padding: 25px 40px;
@@ -166,6 +184,7 @@
 
         .view-section.active { display: block; }
 
+        /* Large Cinema Banner */
         .hero-banner-large {
             position: relative;
             width: 100%;
@@ -197,6 +216,7 @@
             max-width: 600px;
         }
 
+        /* Expanded 3D Category Grid */
         .quick-categories-grid-large {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -240,6 +260,7 @@
         .category-card-overlay-large i { font-size: 26px; }
         .category-card-overlay-large span { font-size: 20px; font-weight: 800; }
 
+        /* Media Grids */
         .media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -257,6 +278,7 @@
         .media-card img { width: 100%; height: 230px; object-fit: cover; }
         .media-card-body { padding: 12px; }
 
+        /* Live TV Layout */
         .live-layout {
             display: grid;
             grid-template-columns: 460px 1fr;
@@ -288,6 +310,7 @@
         }
         .channel-pro-card:hover { border-color: var(--primary-blue); background: rgba(0,210,255,0.1); }
 
+        /* Settings Modal & Sub-Modals Structure */
         .settings-modal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -346,6 +369,7 @@
         .settings-btn-left { display: flex; align-items: center; gap: 15px; }
         .settings-btn i { font-size: 18px; width: 24px; text-align: center; }
 
+        /* Sub Settings Forms */
         .sub-setting-view {
             display: none;
             flex-direction: column;
@@ -398,6 +422,10 @@
 </head>
 <body>
 
+    <!-- 3D Canvas Background -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Navigation Header -->
     <nav class="top-navbar">
         <div class="brand-container" onclick="switchView('homeView', this)">
             <div class="brand-logo-3d">
@@ -405,16 +433,16 @@
             </div>
             <div class="server-status-pill">
                 <span class="green-dot"></span>
-                <span>SERVER ONLINE</span>
+                <span id="txtServerStatus">SERVER ONLINE</span>
             </div>
         </div>
 
         <div class="nav-center">
-            <button class="nav-pill active" onclick="switchView('homeView', this)">page d'accueil</button>
-            <button class="nav-pill" onclick="switchView('moviesView', this)">Films</button>
-            <button class="nav-pill" onclick="switchView('seriesView', this)">Séries TV</button>
-            <button class="nav-pill" onclick="switchView('animesView', this)">Animés</button>
-            <button class="nav-pill" onclick="switchView('liveView', this)">TV en direct</button>
+            <button class="nav-pill active" onclick="switchView('homeView', this)" data-i18n="navHome">page d'accueil</button>
+            <button class="nav-pill" onclick="switchView('moviesView', this)" data-i18n="navMovies">Films</button>
+            <button class="nav-pill" onclick="switchView('seriesView', this)" data-i18n="navSeries">Séries TV</button>
+            <button class="nav-pill" onclick="switchView('animesView', this)" data-i18n="navAnimes">Animés</button>
+            <button class="nav-pill" onclick="switchView('liveView', this)" data-i18n="navLive">TV en direct</button>
         </div>
 
         <div class="nav-right">
@@ -422,10 +450,11 @@
         </div>
     </nav>
 
+    <!-- HOME VIEW -->
     <div id="homeView" class="view-section active">
         <div class="hero-banner-large">
-            <h1 class="hero-banner-title">StreamVibe PRO - Universal Streaming</h1>
-            <p class="hero-banner-sub">Plateforme de streaming ultime. Découvrez les meilleurs films, séries, animés et chaînes télévisées en direct avec qualité Ultra HD.</p>
+            <h1 class="hero-banner-title" data-i18n="heroTitle">StreamVibe PRO - Universal Streaming</h1>
+            <p class="hero-banner-sub" data-i18n="heroSub">Plateforme de streaming ultime. Découvrez les meilleurs films, séries, animés et chaînes télévisées en direct avec qualité Ultra HD.</p>
         </div>
 
         <div class="quick-categories-grid-large">
@@ -433,325 +462,18 @@
                 <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop" alt="Films">
                 <div class="category-card-overlay-large">
                     <i class="fa-solid fa-film" style="color:#ff4b60;"></i>
-                    <span>Films</span>
+                    <span data-i18n="catMovies">Films</span>
                 </div>
             </div>
             <div class="category-card-large" onclick="switchView('seriesView', null)">
                 <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=600&auto=format&fit=crop" alt="Séries">
                 <div class="category-card-overlay-large">
                     <i class="fa-solid fa-tv" style="color:#6c5ce7;"></i>
-                    <span>Séries TV</span>
+                    <span data-i18n="catSeries">Séries TV</span>
                 </div>
             </div>
             <div class="category-card-large" onclick="switchView('liveView', null)">
                 <img src="https://images.unsplash.com/photo-1593784991095-a205069470b6?q=80&w=600&auto=format&fit=crop" alt="Live">
                 <div class="category-card-overlay-large">
                     <i class="fa-solid fa-satellite-dish" style="color:#00c6ff;"></i>
-                    <span>TV en direct</span>
-                </div>
-            </div>
-            <div class="category-card-large" onclick="switchView('animesView', null)">
-                <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop" alt="Animés">
-                <div class="category-card-overlay-large">
-                    <i class="fa-solid fa-child" style="color:#00b894;"></i>
-                    <span>Animés</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="moviesView" class="view-section">
-        <h2 style="margin-bottom:20px; font-weight:800;"><i class="fa-solid fa-film" style="color:#ff4b60;"></i> Bibliothèque de Films</h2>
-        <div class="media-grid" id="moviesGrid"></div>
-    </div>
-
-    <div id="seriesView" class="view-section">
-        <h2 style="margin-bottom:20px; font-weight:800;"><i class="fa-solid fa-tv" style="color:#6c5ce7;"></i> Séries & Saisons</h2>
-        <div class="media-grid" id="seriesGrid"></div>
-    </div>
-
-    <div id="animesView" class="view-section">
-        <h2 style="margin-bottom:20px; font-weight:800;"><i class="fa-solid fa-child" style="color:#00b894;"></i> Animés & Enfants</h2>
-        <div class="media-grid" id="animesGrid"></div>
-    </div>
-
-    <div id="liveView" class="view-section">
-        <div class="live-layout">
-            <div class="player-preview-card">
-                <div class="video-box">
-                    <video id="livePlayer" controls autoplay></video>
-                </div>
-                <div style="padding: 20px;">
-                    <h2 id="currentChannelName" style="font-size:20px; font-weight:800;">قناة القرآن الكريم</h2>
-                    <p style="color:var(--text-sub); font-size:13px; margin-top:4px;">البث المباشر HD</p>
-                </div>
-            </div>
-            <div class="channels-pro-grid" id="channelsContainer"></div>
-        </div>
-    </div>
-
-    <div class="settings-modal" id="settingsModal">
-        <div class="settings-content">
-            <div id="mainSettingsList">
-                <div class="settings-title-bar">
-                    <h2><i class="fa-solid fa-gear" style="color:var(--primary-blue);"></i> Paramètres</h2>
-                    <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-
-                <div class="settings-list">
-                    <button class="settings-btn" onclick="showSubSetting('subM3u')">
-                        <div class="settings-btn-left"><i class="fa-solid fa-link"></i> <span>Ajouter une liste M3U</span></div>
-                        <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-                    </button>
-                    <button class="settings-btn" onclick="showSubSetting('subParental')">
-                        <div class="settings-btn-left"><i class="fa-solid fa-lock"></i> <span>Contrôle parental</span></div>
-                        <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-                    </button>
-                    <button class="settings-btn" onclick="showSubSetting('subLang')">
-                        <div class="settings-btn-left"><i class="fa-solid fa-globe"></i> <span>Langue</span></div>
-                        <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-                    </button>
-                    <button class="settings-btn" onclick="showSubSetting('subTheme')">
-                        <div class="settings-btn-left"><i class="fa-solid fa-palette"></i> <span>Thème</span></div>
-                        <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-                    </button>
-                    <button class="settings-btn" onclick="showSubSetting('subPlayer')">
-                        <div class="settings-btn-left"><i class="fa-solid fa-circle-play"></i> <span>Lecteur externe</span></div>
-                        <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-                    </button>
-                    <button class="settings-btn" onclick="showSubSetting('subHistory')">
-                        <div class="settings-btn-left"><i class="fa-solid fa-trash-can"></i> <span>Effacer l'historique</span></div>
-                        <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div id="subM3u" class="sub-setting-view">
-                <div class="settings-title-bar">
-                    <button class="btn-back-settings" onclick="backToMainSettings()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-                    <h2>M3U Playlist</h2>
-                </div>
-                <div class="form-group">
-                    <label>Nom de la liste</label>
-                    <input type="text" class="form-input" placeholder="Ex: Mon IPTV Premium">
-                </div>
-                <div class="form-group">
-                    <label>Lien URL (M3U / Xtream Codes)</label>
-                    <input type="url" class="form-input" id="m3uUrlInput" placeholder="https://example.com/get.php?username=...">
-                </div>
-                <button class="btn-submit" onclick="saveM3u()">Charger la liste / تحميل</button>
-            </div>
-
-            <div id="subParental" class="sub-setting-view">
-                <div class="settings-title-bar">
-                    <button class="btn-back-settings" onclick="backToMainSettings()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-                    <h2>Contrôle parental</h2>
-                </div>
-                <div class="form-group">
-                    <label>Code PIN (4 chiffres)</label>
-                    <input type="password" maxlength="4" class="form-input" placeholder="****">
-                </div>
-                <div class="form-group">
-                    <label>Verrouiller le contenu adulte (+18)</label>
-                    <select class="form-select">
-                        <option>Activé / مفعل</option>
-                        <option>Désactivé / معطل</option>
-                    </select>
-                </div>
-                <button class="btn-submit" onclick="saveParental()">Activer le verrou / حفظ</button>
-            </div>
-
-            <div id="subLang" class="sub-setting-view">
-                <div class="settings-title-bar">
-                    <button class="btn-back-settings" onclick="backToMainSettings()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-                    <h2>Langue / اللغة</h2>
-                </div>
-                <div class="form-group">
-                    <label>Langue de l'application</label>
-                    <select class="form-select">
-                        <option value="fr">Français</option>
-                        <option value="ar">العربية</option>
-                        <option value="en">English</option>
-                    </select>
-                </div>
-                <button class="btn-submit" onclick="saveLanguage()">Enregistrer / حفظ</button>
-            </div>
-
-            <div id="subTheme" class="sub-setting-view">
-                <div class="settings-title-bar">
-                    <button class="btn-back-settings" onclick="backToMainSettings()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-                    <h2>Thème de l'interface</h2>
-                </div>
-                <div class="form-group">
-                    <label>Choisissez un style</label>
-                    <select class="form-select" id="themeSelect" onchange="applyThemeStyle(this.value)">
-                        <option value="dark">Dark Luxury (أزرق داكن)</option>
-                        <option value="neon">Neon Magenta (نيون وردي)</option>
-                        <option value="cyber">Cyberpunk Turquoise (سايبر تركواز)</option>
-                    </select>
-                </div>
-                <button class="btn-submit" onclick="backToMainSettings()">Appliquer / تطبيق</button>
-            </div>
-
-            <div id="subPlayer" class="sub-setting-view">
-                <div class="settings-title-bar">
-                    <button class="btn-back-settings" onclick="backToMainSettings()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-                    <h2>Lecteur Externe</h2>
-                </div>
-                <div class="form-group">
-                    <label>Lecteur par défaut</label>
-                    <select class="form-select">
-                        <option>Lecteur Interne (HLS.js Native)</option>
-                        <option>VLC Media Player</option>
-                        <option>MX Player Pro</option>
-                        <option>ExoPlayer (Android)</option>
-                    </select>
-                </div>
-                <button class="btn-submit" onclick="savePlayer()">Confirmer / تأكيد</button>
-            </div>
-
-            <div id="subHistory" class="sub-setting-view">
-                <div class="settings-title-bar">
-                    <button class="btn-back-settings" onclick="backToMainSettings()"><i class="fa-solid fa-arrow-left"></i> Retour</button>
-                    <h2>Effacer l'historique</h2>
-                </div>
-                <p style="font-size:14px; color:var(--text-sub); margin-bottom:15px;">Voulez-vous vraiment effacer tout votre historique de visionnage et vider le cache ?</p>
-                <button class="btn-submit" style="background:#ff0055; color:#fff;" onclick="clearHistory()">Oui, tout effacer / مسح الكل</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fallback Streaming Script Engine -->
-    <script>
-        const moviesData = [
-            { title: "Inception 4K", year: "2010", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop" },
-            { title: "Interstellar", year: "2014", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop" }
-        ];
-
-        const seriesData = [
-            { title: "Peaky Blinders", year: "Saison 6", img: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" },
-            { title: "Breaking Bad", year: "Saison 5", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" }
-        ];
-
-        const channelsData = [
-            { name: "قناة القرآن الكريم", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8" },
-            { name: "قناة السنة النبوية", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8" },
-            { name: "France 24 Arabe", flag: "🇫🇷", url: "https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8" },
-            { name: "Al Jazeera English", flag: "🇶🇦", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8" }
-        ];
-
-        document.addEventListener("DOMContentLoaded", () => {
-            try {
-                renderGrid('moviesGrid', moviesData);
-                renderGrid('seriesGrid', seriesData);
-                renderGrid('animesGrid', moviesData);
-                renderChannels(channelsData);
-                playLiveDirect(channelsData[0].url, channelsData[0].name);
-            } catch(err) {
-                console.error(err);
-            }
-        });
-
-        function renderGrid(elementId, data) {
-            const grid = document.getElementById(elementId);
-            if(!grid) return;
-            grid.innerHTML = '';
-            data.forEach(item => {
-                grid.innerHTML += `
-                    <div class="media-card" onclick="alert('Lancement de ${item.title}')">
-                        <img src="${item.img}" alt="${item.title}">
-                        <div class="media-card-body">
-                            <div style="font-weight:700; font-size:14px;">${item.title}</div>
-                            <div style="color:var(--text-sub); font-size:12px; margin-top:2px;">${item.year}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderChannels(data) {
-            const container = document.getElementById('channelsContainer');
-            if(!container) return;
-            container.innerHTML = '';
-            data.forEach(ch => {
-                container.innerHTML += `
-                    <div class="channel-pro-card" onclick="playLiveDirect('${ch.url}', '${ch.name}')">
-                        <div style="font-size:22px;">${ch.flag}</div>
-                        <div style="font-size:14px; font-weight:700;">${ch.name}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function switchView(viewId, btn) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
-            const target = document.getElementById(viewId);
-            if(target) target.classList.add('active');
-            if(btn && btn.classList) btn.classList.add('active');
-        }
-
-        function playLiveDirect(url, name) {
-            const video = document.getElementById('livePlayer');
-            const title = document.getElementById('currentChannelName');
-            if(title) title.innerText = name;
-            if(!video) return;
-
-            video.src = url;
-            video.load();
-            video.play().catch(e => {
-                console.log("Auto-play blocked or stream format needs manual interaction");
-            });
-        }
-
-        function openSettings() {
-            document.getElementById('settingsModal').classList.add('active');
-            backToMainSettings();
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-
-        function showSubSetting(subId) {
-            document.getElementById('mainSettingsList').style.display = 'none';
-            document.querySelectorAll('.sub-setting-view').forEach(s => s.classList.remove('active'));
-            document.getElementById(subId).classList.add('active');
-        }
-
-        function backToMainSettings() {
-            document.querySelectorAll('.sub-setting-view').forEach(s => s.classList.remove('active'));
-            document.getElementById('mainSettingsList').style.display = 'block';
-        }
-
-        function applyThemeStyle(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-
-        function saveM3u() {
-            alert('تم حفظ رابط M3U وجاري مزامنة القنوات!');
-            backToMainSettings();
-        }
-
-        function saveParental() {
-            alert('تم تفعيل الرقابة الأبوية بنجاح!');
-            backToMainSettings();
-        }
-
-        function saveLanguage() {
-            alert('تم تغيير لغة التطبيق!');
-            backToMainSettings();
-        }
-
-        function savePlayer() {
-            alert('تم اختيار المشغل بنجاح!');
-            backToMainSettings();
-        }
-
-        function clearHistory() {
-            alert('تم إفراغ الذاكرة المؤقتة وسجل المشاهدة بنجاح!');
-            backToMainSettings();
-        }
-    </script>
-</body>
-</html>
+                    <span data-
