@@ -30,22 +30,30 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
 
-      - name: Install Android SDK packages
+      - name: Accept Android licenses
+        shell: bash
         run: |
           set -e
+          yes | sdkmanager --licenses || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Find and extract Nova TV project ZIP
         shell: bash
         run: |
           set -euo pipefail
+
           mkdir -p "$GITHUB_WORKSPACE/project"
 
           ZIP_FILE="$(find "$GITHUB_WORKSPACE" -maxdepth 2 -type f -iname '*.zip' ! -path '*/project/*' | sort | head -n 1)"
 
           if [ -z "${ZIP_FILE:-}" ]; then
-            echo "ERROR: No ZIP file found in the repository."
+            echo "ERROR: No project ZIP found in repository."
             exit 1
           fi
 
@@ -55,12 +63,13 @@ jobs:
           APP_GRADLE="$(find "$GITHUB_WORKSPACE/project" -type f \( -name 'build.gradle.kts' -o -name 'build.gradle' \) -path '*/app/*' | head -n 1)"
 
           if [ -z "${APP_GRADLE:-}" ]; then
-            echo "ERROR: App Gradle file was not found inside the ZIP."
+            echo "ERROR: Could not find app Gradle file inside ZIP."
             exit 1
           fi
 
           PROJECT_DIR="$(dirname "$(dirname "$APP_GRADLE")")"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
           echo "Project directory: $PROJECT_DIR"
 
       - name: Fix Java and Kotlin targets
@@ -79,65 +88,61 @@ jobs:
               root / "app" / "build.gradle"
           ]
 
-          gradle_file = next((p for p in candidates if p.is_file()), None)
+          gradle_file = next(
+              (path for path in candidates if path.is_file()),
+              None
+          )
 
           if gradle_file is None:
-              raise SystemExit("ERROR: app/build.gradle file was not found.")
+              raise SystemExit("ERROR: app Gradle file not found.")
 
           text = gradle_file.read_text(encoding="utf-8")
 
-          # Remove the dependency that caused the Media3 resolution error.
+          # Remove the dependency that caused the earlier Media3 error.
           text = "\n".join(
               line for line in text.splitlines()
               if "androidx.media3:media3-ui-compose" not in line
           ) + "\n"
 
-          # Set Java compatibility to version 17.
+          # Align Java compatibility to Java 17.
           text = re.sub(
               r"JavaVersion\.VERSION_(?:1_8|8|11|17)",
               "JavaVersion.VERSION_17",
               text
           )
 
-          # Set Kotlin JVM target to 17.
+          # Align Kotlin JVM target to 17.
           text = re.sub(
               r'jvmTarget\s*=\s*["\'][^"\']+["\']',
               'jvmTarget = "17"',
               text
           )
 
-          # Add missing Java compile options if necessary.
           if "compileOptions" not in text:
               match = re.search(r"android\s*\{", text)
               if not match:
-                  raise SystemExit("ERROR: Android configuration block not found.")
+                  raise SystemExit("ERROR: Android block not found.")
 
-              addition = """
+              text = text[:match.end()] + """
               compileOptions {
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
-              """
+              """ + text[match.end():]
 
-              text = text[:match.end()] + addition + text[match.end():]
-
-          # Add missing Kotlin options if necessary.
           if "kotlinOptions" not in text:
               match = re.search(r"android\s*\{", text)
               if not match:
-                  raise SystemExit("ERROR: Android configuration block not found.")
+                  raise SystemExit("ERROR: Android block not found.")
 
-              addition = """
+              text = text[:match.end()] + """
               kotlinOptions {
                   jvmTarget = "17"
               }
-              """
-
-              text = text[:match.end()] + addition + text[match.end():]
+              """ + text[match.end():]
 
           gradle_file.write_text(text, encoding="utf-8")
-          print("Java and Kotlin target compatibility updated.")
-          print("Updated file:", gradle_file)
+          print("Updated Java and Kotlin compatibility.")
           PY
 
       - name: Build debug APK
@@ -161,13 +166,14 @@ jobs:
           APK_PATH="$(find "$PROJECT_DIR/app/build/outputs/apk/debug" -type f -name '*.apk' | head -n 1)"
 
           if [ -z "${APK_PATH:-}" ]; then
-            echo "ERROR: APK file was not created."
+            echo "ERROR: APK was not created."
             exit 1
           fi
 
           mkdir -p "$GITHUB_WORKSPACE/output"
           cp "$APK_PATH" "$GITHUB_WORKSPACE/output/NovaTV-debug.apk"
-          echo "APK successfully found."
+
+          echo "APK found successfully."
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
