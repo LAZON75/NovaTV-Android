@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamVibe PRO - NextGen IPTV Experience</title>
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Streaming & 3D Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -18,7 +16,7 @@
             --bg-glass: rgba(255, 255, 255, 0.05);
             --primary-blue: #00d2ff;
             --primary-glow: rgba(0, 210, 255, 0.5);
-            --accent-red: #ff0055;
+            --btn-settings: #c01248;
             --pill-active: #ffffff;
             --text-main: #ffffff;
             --text-sub: #94a3b8;
@@ -47,7 +45,6 @@
             padding-bottom: 40px;
         }
 
-        /* 3D Canvas Particles */
         #webgl-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -70,7 +67,6 @@
             border-bottom: 1px solid var(--border-subtle);
         }
 
-        /* 3D Animated Neon Brand Logo */
         .brand-container {
             display: flex;
             align-items: center;
@@ -84,18 +80,10 @@
             background: linear-gradient(135deg, #00d2ff, #3a7bd5, #ff0055);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0, 210, 255, 0.6), 0 0 40px rgba(255, 0, 85, 0.4);
-            letter-spacing: 0.5px;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.6);
             display: flex;
             align-items: center;
             gap: 10px;
-            transform: perspective(500px) rotateX(10deg);
-            transition: all 0.3s ease;
-        }
-
-        .brand-logo-3d:hover {
-            transform: perspective(500px) rotateX(0deg) scale(1.03);
-            text-shadow: 0 0 30px rgba(0, 210, 255, 0.9), 0 0 50px rgba(255, 0, 85, 0.7);
         }
 
         .brand-badge {
@@ -105,11 +93,8 @@
             font-weight: 800;
             padding: 3px 8px;
             border-radius: 6px;
-            box-shadow: 0 0 12px rgba(255, 0, 85, 0.6);
-            letter-spacing: 1px;
         }
 
-        /* Server Status Indicator (Live Green Pulse) */
         .server-status-pill {
             display: flex;
             align-items: center;
@@ -121,15 +106,13 @@
             font-size: 12px;
             font-weight: 700;
             color: #10b981;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
         }
 
         .green-dot {
-            width: 9px;
-            height: 9px;
+            width: 9px; height: 9px;
             background-color: #10b981;
             border-radius: 50%;
-            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+            box-shadow: 0 0 10px #10b981;
             animation: pulse-green 1.5s infinite;
         }
 
@@ -161,17 +144,10 @@
             transition: all 0.2s ease;
         }
 
-        .nav-pill.active, .nav-pill:focus, .nav-pill:hover {
+        .nav-pill.active, .nav-pill:hover {
             background: var(--pill-active);
             color: #0f172a;
             font-weight: 700;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .icon-btn {
@@ -180,37 +156,31 @@
             color: #fff;
             width: 42px; height: 42px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer;
             transition: 0.2s;
         }
 
-        .icon-btn:hover, .icon-btn:focus {
+        .icon-btn:hover {
             background: var(--primary-blue);
             color: #000;
-            box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* View Layouts */
+        /* Views */
         .view-section {
             display: none;
-            padding: 20px 40px;
+            padding: 25px 40px;
             animation: fadeIn 0.3s ease-in-out;
         }
 
-        .view-section.active {
-            display: block;
-        }
+        .view-section.active { display: block; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Hero Layout */
+        /* Home View */
         .hero-layout {
             display: grid;
             grid-template-columns: 320px 1fr;
@@ -220,130 +190,55 @@
         }
 
         .poster-card {
-            width: 100%;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            width: 100%; border-radius: 20px;
+            overflow: hidden; height: 440px;
             border: 1px solid var(--border-subtle);
-            height: 440px;
         }
 
-        .poster-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+        .poster-card img { width: 100%; height: 100%; object-fit: cover; }
 
-        .movie-details {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .movie-title {
-            font-size: 34px;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-
-        .movie-meta {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            color: var(--text-sub);
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        /* Quick Category Cards */
         .quick-categories-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
-            margin-top: 10px;
+            margin-top: 20px;
         }
 
         .category-card {
-            height: 180px;
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            border: 1px solid var(--border-subtle);
-            transition: all 0.25s ease;
-            background: #1e293b;
+            height: 160px; border-radius: 16px;
+            overflow: hidden; position: relative;
+            cursor: pointer; border: 1px solid var(--border-subtle);
+            background: #1e293b; transition: 0.25s;
         }
 
-        .category-card:hover, .category-card:focus {
-            transform: translateY(-5px) scale(1.03);
-            border-color: var(--primary-blue);
-            box-shadow: 0 10px 25px var(--primary-glow);
-        }
-
-        .category-card img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: brightness(0.7);
-        }
+        .category-card:hover { transform: translateY(-5px); border-color: var(--primary-blue); }
+        .category-card img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.65); }
 
         .category-card-overlay {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 15px;
-            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 15px; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.9));
             display: flex; align-items: center; gap: 10px;
         }
 
-        .category-card-overlay i {
-            font-size: 18px;
-            color: var(--primary-blue);
+        /* Media Grids for Films, Series, Animes */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
 
-        .category-card-overlay span {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        /* Continue Watching */
-        .section-subtitle {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            margin-top: 25px;
-        }
-
-        .continue-card {
+        .media-card {
             background: var(--bg-card);
-            border-radius: 16px;
-            padding: 12px 20px;
-            display: flex; align-items: center; gap: 15px;
-            width: 320px;
+            border-radius: 14px; overflow: hidden;
             border: 1px solid var(--border-subtle);
+            cursor: pointer; transition: 0.2s;
         }
 
-        .continue-icon {
-            width: 42px; height: 42px;
-            border-radius: 50%;
-            background: var(--primary-blue);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; color: #000;
-        }
+        .media-card:hover { transform: translateY(-5px); border-color: var(--primary-blue); }
+        .media-card img { width: 100%; height: 230px; object-fit: cover; }
+        .media-card-body { padding: 12px; }
 
-        .progress-bar {
-            width: 100%; height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-            margin-top: 6px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-blue);
-        }
-
-        /* Live TV View Layout */
+        /* Live TV */
         .live-layout {
             display: grid;
             grid-template-columns: 460px 1fr;
@@ -352,24 +247,13 @@
 
         .player-preview-card {
             background: var(--bg-card);
-            border-radius: 20px;
-            overflow: hidden;
+            border-radius: 20px; overflow: hidden;
             border: 1px solid var(--border-subtle);
-            backdrop-filter: blur(15px);
-            position: sticky;
-            top: 100px;
+            position: sticky; top: 100px;
         }
 
-        .video-box {
-            position: relative;
-            width: 100%; height: 260px;
-            background: #000;
-        }
-
-        .video-box video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-        }
+        .video-box { width: 100%; height: 260px; background: #000; }
+        .video-box video { width: 100%; height: 100%; object-fit: cover; }
 
         .channels-pro-grid {
             display: grid;
@@ -380,26 +264,13 @@
         .channel-pro-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 15px;
+            border-radius: 14px; padding: 15px;
             display: flex; align-items: center; gap: 12px;
-            cursor: pointer; transition: 0.25s;
+            cursor: pointer; transition: 0.2s;
         }
+        .channel-pro-card:hover { border-color: var(--primary-blue); background: rgba(0,210,255,0.1); }
 
-        .channel-pro-card:hover, .channel-pro-card:focus {
-            background: rgba(0, 210, 255, 0.15);
-            border-color: var(--primary-blue);
-            transform: translateY(-3px);
-        }
-
-        .channel-logo-box {
-            width: 45px; height: 45px;
-            border-radius: 10px; background: #1e293b;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; flex-shrink: 0;
-        }
-
-        /* Settings Modal Overlay */
+        /* Settings Modal (Paramètres) */
         .settings-modal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -410,60 +281,66 @@
             align-items: center; justify-content: center;
         }
 
-        .settings-modal.active {
-            display: flex !important;
-        }
+        .settings-modal.active { display: flex !important; }
 
         .settings-content {
-            background: #121824;
+            background: #0f131f;
             border: 1px solid var(--border-subtle);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 30px;
             width: 90%; max-width: 480px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
             position: relative;
         }
 
+        .settings-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .settings-title-bar h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+        }
+
         .close-settings {
-            position: absolute;
-            top: 20px; right: 20px;
             background: transparent; border: none;
-            color: var(--text-sub); font-size: 22px;
+            color: var(--text-sub); font-size: 20px;
             cursor: pointer;
         }
 
-        .settings-item { margin-bottom: 18px; }
-
-        .settings-item label {
-            display: block; font-size: 14px; font-weight: 700;
-            margin-bottom: 8px; color: var(--primary-blue);
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .settings-item select, .settings-item input {
-            width: 100%; background: #1a2234;
-            border: 1px solid var(--border-subtle);
-            color: #fff; padding: 12px;
-            border-radius: 10px; font-size: 14px;
+        .settings-btn {
+            background: var(--btn-settings);
+            color: #fff; border: none;
+            padding: 15px 20px; border-radius: 16px;
+            font-size: 15px; font-weight: 700;
+            display: flex; align-items: center; gap: 15px;
+            cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(192, 18, 72, 0.3);
+            text-align: left; width: 100%;
         }
 
-        .btn-save-settings {
-            width: 100%; background: var(--primary-blue);
-            color: #000; border: none; padding: 12px;
-            border-radius: 12px; font-weight: 800;
-            font-size: 15px; cursor: pointer;
-        }
+        .settings-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .settings-btn i { font-size: 18px; width: 24px; text-align: center; }
 
         @media (max-width: 900px) {
             .top-navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
             .hero-layout, .live-layout { grid-template-columns: 1fr; }
             .quick-categories-grid { grid-template-columns: repeat(2, 1fr); }
-            .view-section { padding: 15px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Dynamic 3D Particles Background Canvas -->
     <canvas id="webgl-canvas"></canvas>
 
     <!-- Top Navigation Header -->
@@ -472,7 +349,6 @@
             <div class="brand-logo-3d">
                 <i class="fa-solid fa-play" style="color:#00d2ff;"></i> StreamVibe <span class="brand-badge">PRO</span>
             </div>
-            <!-- Live Server Indicator -->
             <div class="server-status-pill">
                 <span class="green-dot"></span>
                 <span>SERVER ONLINE</span>
@@ -492,82 +368,67 @@
         </div>
     </nav>
 
-    <!-- HOME VIEW (Page d'accueil) -->
+    <!-- HOME VIEW -->
     <div id="homeView" class="view-section active">
         <div class="hero-layout">
             <div class="poster-card">
-                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=600&auto=format&fit=crop" alt="Cinema Hero">
+                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=600&auto=format&fit=crop" alt="Hero">
             </div>
 
-            <div class="movie-details">
-                <h1 class="movie-title">StreamVibe PRO - Universal Streaming</h1>
-                <div class="movie-meta">
-                    <span style="color:#facc15;"><i class="fa-solid fa-star"></i> 8.9</span>
-                    <span>2026</span>
-                    <span>4K Cinema, Live IPTV, Series</span>
-                </div>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <h1 style="font-size:34px; font-weight:800;">StreamVibe PRO - Universal Streaming</h1>
+                <p style="color:var(--text-sub); font-size:14px;">Parcourez les films, séries, animés et chaînes en direct avec lecteur intelligent.</p>
 
-                <!-- Clean Category Cards -->
                 <div class="quick-categories-grid">
                     <div class="category-card" onclick="switchView('moviesView')">
                         <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop" alt="Films">
                         <div class="category-card-overlay">
-                            <i class="fa-solid fa-film"></i>
+                            <i class="fa-solid fa-film" style="color:#ff4b60;"></i>
                             <span>Films</span>
                         </div>
                     </div>
                     <div class="category-card" onclick="switchView('seriesView')">
                         <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" alt="Séries">
                         <div class="category-card-overlay">
-                            <i class="fa-solid fa-tv"></i>
+                            <i class="fa-solid fa-tv" style="color:#6c5ce7;"></i>
                             <span>Séries TV</span>
                         </div>
                     </div>
                     <div class="category-card" onclick="switchView('liveView')">
-                        <img src="https://images.unsplash.com/photo-1593784991095-a205069470b6?q=80&w=400&auto=format&fit=crop" alt="TV en direct">
+                        <img src="https://images.unsplash.com/photo-1593784991095-a205069470b6?q=80&w=400&auto=format&fit=crop" alt="Live">
                         <div class="category-card-overlay">
-                            <i class="fa-solid fa-satellite-dish"></i>
+                            <i class="fa-solid fa-satellite-dish" style="color:#00c6ff;"></i>
                             <span>TV en direct</span>
                         </div>
                     </div>
                     <div class="category-card" onclick="switchView('animesView')">
                         <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=400&auto=format&fit=crop" alt="Animés">
                         <div class="category-card-overlay">
-                            <i class="fa-solid fa-child"></i>
+                            <i class="fa-solid fa-child" style="color:#00b894;"></i>
                             <span>Animés</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="section-subtitle">Continuer à regarder</div>
-        <div class="continue-card">
-            <div class="continue-icon"><i class="fa-solid fa-clock"></i></div>
-            <div>
-                <div style="font-weight:800; font-size:14px;">Peaky Blinders</div>
-                <div style="color:var(--text-sub); font-size:12px; margin-top:2px;">11% visionné</div>
-                <div class="progress-bar"><div class="progress-fill" style="width:11%;"></div></div>
-            </div>
-        </div>
     </div>
 
     <!-- FILMS VIEW -->
     <div id="moviesView" class="view-section">
-        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-film" style="color:var(--primary-blue);"></i> Bibliothèque de Films</h2>
-        <div class="channels-pro-grid" id="moviesGrid"></div>
+        <h2 style="margin-bottom:20px; font-weight:800;"><i class="fa-solid fa-film" style="color:#ff4b60;"></i> Bibliothèque de Films</h2>
+        <div class="media-grid" id="moviesGrid"></div>
     </div>
 
     <!-- SÉRIES VIEW -->
     <div id="seriesView" class="view-section">
-        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-tv" style="color:var(--primary-blue);"></i> Séries & Saisons</h2>
-        <div class="channels-pro-grid" id="seriesGrid"></div>
+        <h2 style="margin-bottom:20px; font-weight:800;"><i class="fa-solid fa-tv" style="color:#6c5ce7;"></i> Séries & Saisons</h2>
+        <div class="media-grid" id="seriesGrid"></div>
     </div>
 
     <!-- ANIMÉS VIEW -->
     <div id="animesView" class="view-section">
-        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-child" style="color:var(--primary-blue);"></i> Animés & Enfants</h2>
-        <div class="channels-pro-grid" id="animesGrid"></div>
+        <h2 style="margin-bottom:20px; font-weight:800;"><i class="fa-solid fa-child" style="color:#00b894;"></i> Animés & Enfants</h2>
+        <div class="media-grid" id="animesGrid"></div>
     </div>
 
     <!-- LIVE TV VIEW -->
@@ -582,39 +443,53 @@
                     <p style="color:var(--text-sub); font-size:13px; margin-top:4px;">البث المباشر HD</p>
                 </div>
             </div>
-
             <div class="channels-pro-grid" id="channelsContainer"></div>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
+    <!-- SETTINGS MODAL (PARAMÈTRES) -->
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
-            <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="font-size: 20px; margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--primary-blue);"></i> Paramètres النظام</h2>
-
-            <div class="settings-item">
-                <label>Langue / اللغة</label>
-                <select id="langSelect">
-                    <option value="fr">Français</option>
-                    <option value="ar">العربية</option>
-                </select>
+            <div class="settings-title-bar">
+                <h2>Paramètres</h2>
+                <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="settings-item">
-                <label>Thème / المظهر</label>
-                <select id="themeSelect" onchange="applyTheme(this.value)">
-                    <option value="dark">Dark Luxury (الليل الفخم)</option>
-                    <option value="neon">Neon Glow (النيون المضيء)</option>
-                </select>
+            <div class="settings-list">
+                <button class="settings-btn" onclick="alert('Ajouter une liste M3U')">
+                    <i class="fa-solid fa-link"></i> Ajouter une liste M3U
+                </button>
+                <button class="settings-btn" onclick="alert('Contrôle parental activé')">
+                    <i class="fa-solid fa-lock"></i> Contrôle parental
+                </button>
+                <button class="settings-btn" onclick="alert('Changer la langue')">
+                    <i class="fa-solid fa-globe"></i> Langue
+                </button>
+                <button class="settings-btn" onclick="alert('Sélectionner le thème')">
+                    <i class="fa-solid fa-palette"></i> Thème
+                </button>
+                <button class="settings-btn" onclick="alert('Lecteur externe sélectionné')">
+                    <i class="fa-solid fa-circle-play"></i> Lecteur externe
+                </button>
+                <button class="settings-btn" onclick="alert('Historique effacé')">
+                    <i class="fa-solid fa-trash-can"></i> Effacer l'historique
+                </button>
             </div>
-
-            <button class="btn-save-settings" onclick="saveSettings()">Enregistrer / حفظ</button>
         </div>
     </div>
 
     <!-- JavaScript Engine -->
     <script>
+        const moviesData = [
+            { title: "Inception 4K", year: "2010", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop" },
+            { title: "Interstellar", year: "2014", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop" }
+        ];
+
+        const seriesData = [
+            { title: "Peaky Blinders", year: "Saison 6", img: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" },
+            { title: "Breaking Bad", year: "Saison 5", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" }
+        ];
+
         const channelsData = [
             { name: "قناة القرآن الكريم", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8" },
             { name: "قناة السنة النبوية", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8" },
@@ -624,6 +499,9 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             init3DBackground();
+            renderGrid('moviesGrid', moviesData);
+            renderGrid('seriesGrid', seriesData);
+            renderGrid('animesGrid', moviesData);
             renderChannels(channelsData);
             playLive(channelsData[0].url, channelsData[0].name);
         });
@@ -658,16 +536,30 @@
             animate();
         }
 
+        function renderGrid(elementId, data) {
+            const grid = document.getElementById(elementId);
+            grid.innerHTML = '';
+            data.forEach(item => {
+                grid.innerHTML += `
+                    <div class="media-card" onclick="alert('Lancement de ${item.title}')">
+                        <img src="${item.img}" alt="${item.title}">
+                        <div class="media-card-body">
+                            <div style="font-weight:700; font-size:14px;">${item.title}</div>
+                            <div style="color:var(--text-sub); font-size:12px; margin-top:2px;">${item.year}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
         function renderChannels(data) {
             const container = document.getElementById('channelsContainer');
             container.innerHTML = '';
             data.forEach(ch => {
                 container.innerHTML += `
                     <div class="channel-pro-card" onclick="playLive('${ch.url}', '${ch.name}')">
-                        <div class="channel-logo-box">${ch.flag}</div>
-                        <div>
-                            <div style="font-size:14px; font-weight:700;">${ch.name}</div>
-                        </div>
+                        <div style="font-size:22px;">${ch.flag}</div>
+                        <div style="font-size:14px; font-weight:700;">${ch.name}</div>
                     </div>
                 `;
             });
@@ -699,8 +591,6 @@
 
         function openSettings() { document.getElementById('settingsModal').classList.add('active'); }
         function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
-        function applyTheme(theme) { document.documentElement.setAttribute('data-theme', theme); }
-        function saveSettings() { alert('تم حفظ الإعدادات بنجاح!'); closeSettings(); }
     </script>
 </body>
 </html>
