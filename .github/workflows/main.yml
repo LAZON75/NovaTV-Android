@@ -2,24 +2,22 @@
 name: Build Nova TV APK
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - '**.zip'
-      - '.github/workflows/main.yml'
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -31,143 +29,128 @@ jobs:
           gradle-version: '8.9'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: 'platform-tools'
+        uses: android-actions/setup-android@v3
 
-      - name: Install Android packages
-        shell: bash
+      - name: Install Android SDK packages
         run: |
           set -e
-          set +o pipefail
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-          yes | sdkmanager --licenses
-          LICENSE_STATUS=$?
-
-          set -o pipefail
-
-          if [ "$LICENSE_STATUS" -ne 0 ]; then
-            echo "::error::Android SDK license acceptance failed."
-            exit 1
-          fi
-
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
-
-      - name: Find and extract project ZIP
+      - name: Find and extract Nova TV project ZIP
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/project"
 
-          ZIP_FILE="NovaTV-Neon-Edition-Project.zip"
+          ZIP_FILE="$(find "$GITHUB_WORKSPACE" -maxdepth 2 -type f -iname '*.zip' ! -path '*/project/*' | sort | head -n 1)"
 
-          if [ ! -f "$ZIP_FILE" ]; then
-            ZIP_FILE="$(find . -maxdepth 1 -type f \
-              -iname '*.zip' -print -quit)"
-          fi
-
-          if [ -z "$ZIP_FILE" ] || [ ! -f "$ZIP_FILE" ]; then
-            echo "::error::Project ZIP not found."
-            ls -la
+          if [ -z "${ZIP_FILE:-}" ]; then
+            echo "ERROR: No ZIP file found in the repository."
             exit 1
           fi
 
-          mkdir -p project
-          unzip -q "$ZIP_FILE" -d project
+          echo "Using ZIP: $ZIP_FILE"
+          unzip -q -o "$ZIP_FILE" -d "$GITHUB_WORKSPACE/project"
 
-          APP_GRADLE="$(find project -type f \
-            \( -path '*/app/build.gradle.kts' \
-            -o -path '*/app/build.gradle' \) \
-            -print -quit)"
+          APP_GRADLE="$(find "$GITHUB_WORKSPACE/project" -type f \( -name 'build.gradle.kts' -o -name 'build.gradle' \) -path '*/app/*' | head -n 1)"
 
-          if [ -z "$APP_GRADLE" ]; then
-            echo "::error::Android Gradle file not found in ZIP."
-            find project -maxdepth 5 -type f | head -100
+          if [ -z "${APP_GRADLE:-}" ]; then
+            echo "ERROR: App Gradle file was not found inside the ZIP."
             exit 1
           fi
 
           PROJECT_DIR="$(dirname "$(dirname "$APP_GRADLE")")"
-          PROJECT_DIR="$(realpath "$PROJECT_DIR")"
-
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
 
-      - name: Fix Java and Kotlin compatibility
+      - name: Fix Java and Kotlin targets
         shell: bash
         run: |
           set -euo pipefail
 
-          python3 - "$PROJECT_DIR" <<'PY'
+          python3 - <<'PY'
+          import os
           import re
-          import sys
           from pathlib import Path
 
-          root = Path(sys.argv[1])
+          root = Path(os.environ["PROJECT_DIR"])
+          candidates = [
+              root / "app" / "build.gradle.kts",
+              root / "app" / "build.gradle"
+          ]
 
-          for p in root.rglob("*"):
-              if not p.is_file() or p.name not in (
-                  "build.gradle",
-                  "build.gradle.kts"
-              ):
-                  continue
+          gradle_file = next((p for p in candidates if p.is_file()), None)
 
-              s = p.read_text()
-              original = s
+          if gradle_file is None:
+              raise SystemExit("ERROR: app/build.gradle file was not found.")
 
-              s = re.sub(
-                  r'JavaVersion\.VERSION_(?:1_8|8|11)',
-                  'JavaVersion.VERSION_17',
-                  s
-              )
+          text = gradle_file.read_text(encoding="utf-8")
 
-              s = re.sub(
-                  r'jvmTarget\s*=\s*["\'](?:1\.8|8|11)["\']',
-                  'jvmTarget = "17"',
-                  s
-              )
+          # Remove the dependency that caused the Media3 resolution error.
+          text = "\n".join(
+              line for line in text.splitlines()
+              if "androidx.media3:media3-ui-compose" not in line
+          ) + "\n"
 
-              if s != original:
-                  p.write_text(s)
-                  print(f"Updated: {p}")
-
-          app = root / "app"
-          gradle_file = (
-              app / "build.gradle.kts"
-              if (app / "build.gradle.kts").exists()
-              else app / "build.gradle"
+          # Set Java compatibility to version 17.
+          text = re.sub(
+              r"JavaVersion\.VERSION_(?:1_8|8|11|17)",
+              "JavaVersion.VERSION_17",
+              text
           )
 
-          if not gradle_file.exists():
-              raise SystemExit("App Gradle file not found.")
+          # Set Kotlin JVM target to 17.
+          text = re.sub(
+              r'jvmTarget\s*=\s*["\'][^"\']+["\']',
+              'jvmTarget = "17"',
+              text
+          )
 
-          print("Java/Kotlin compatibility check completed.")
+          # Add missing Java compile options if necessary.
+          if "compileOptions" not in text:
+              match = re.search(r"android\s*\{", text)
+              if not match:
+                  raise SystemExit("ERROR: Android configuration block not found.")
+
+              addition = """
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              """
+
+              text = text[:match.end()] + addition + text[match.end():]
+
+          # Add missing Kotlin options if necessary.
+          if "kotlinOptions" not in text:
+              match = re.search(r"android\s*\{", text)
+              if not match:
+                  raise SystemExit("ERROR: Android configuration block not found.")
+
+              addition = """
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+              """
+
+              text = text[:match.end()] + addition + text[match.end():]
+
+          gradle_file.write_text(text, encoding="utf-8")
+          print("Java and Kotlin target compatibility updated.")
+          print("Updated file:", gradle_file)
           PY
 
-      - name: Diagnose Media3 dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          grep -RInE \
-            'media3-ui-compose|media3-ui:|media3Version|media3_version' \
-            "$PROJECT_DIR" \
-            --include='*.gradle' \
-            --include='*.gradle.kts' \
-            --include='*.toml' || true
-
-      - name: Build APK
+      - name: Build debug APK
         shell: bash
         run: |
           set -euo pipefail
           cd "$PROJECT_DIR"
 
-          if [ -f ./gradlew ]; then
+          if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
-            ./gradlew assembleDebug --no-daemon
+            ./gradlew --no-daemon assembleDebug
           else
-            gradle assembleDebug --no-daemon
+            gradle --no-daemon assembleDebug
           fi
 
       - name: Verify APK
@@ -175,21 +158,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          APK="$(find "$PROJECT_DIR/app/build/outputs/apk/debug" \
-            -type f -name '*.apk' -print -quit)"
+          APK_PATH="$(find "$PROJECT_DIR/app/build/outputs/apk/debug" -type f -name '*.apk' | head -n 1)"
 
-          if [ -z "$APK" ]; then
-            echo "::error::APK was not generated."
+          if [ -z "${APK_PATH:-}" ]; then
+            echo "ERROR: APK file was not created."
             exit 1
           fi
 
-          echo "APK generated successfully:"
-          ls -lh "$APK"
+          mkdir -p "$GITHUB_WORKSPACE/output"
+          cp "$APK_PATH" "$GITHUB_WORKSPACE/output/NovaTV-debug.apk"
+          echo "APK successfully found."
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Nova-TV-APK
-          path: project/**/app/build/outputs/apk/debug/*.apk
+          name: NovaTV-debug-APK
+          path: output/NovaTV-debug.apk
           if-no-files-found: error
-          retention-days: 7
