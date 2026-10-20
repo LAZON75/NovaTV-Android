@@ -37,7 +37,7 @@ jobs:
 
       - name: Install Android packages
         run: |
-          sdkmanager --licenses
+          yes | sdkmanager --licenses
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Extract project
@@ -48,6 +48,51 @@ jobs:
       - name: Update Media3 dependencies
         run: |
           find project/NovaTV-Android-Studio -type f \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "*.toml" \) -exec sed -i 's/1\.5\.1/1.6.1/g' {} +
+
+      - name: Fix Java and Kotlin compatibility
+        run: |
+          FILE="project/NovaTV-Android-Studio/app/build.gradle.kts"
+          python3 - "$FILE" <<'PY'
+          import sys
+          from pathlib import Path
+
+          p = Path(sys.argv[1])
+          s = p.read_text()
+
+          s = s.replace(
+              'JavaVersion.VERSION_1_8',
+              'JavaVersion.VERSION_17'
+          )
+          s = s.replace(
+              'jvmTarget = "1.8"',
+              'jvmTarget = "17"'
+          )
+          s = s.replace(
+              'jvmTarget = "8"',
+              'jvmTarget = "17"'
+          )
+
+          if 'compileOptions {' not in s:
+              block = '''
+          android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          }
+          '''
+              s += '\n' + block
+
+          if 'kotlinOptions {' not in s:
+              s += '''
+          kotlin {
+              jvmToolchain(17)
+          }
+          '''
+
+          p.write_text(s)
+          print("Java/Kotlin compatibility updated.")
+          PY
 
       - name: Build APK
         working-directory: project/NovaTV-Android-Studio
