@@ -36,7 +36,9 @@ jobs:
           packages: 'platform-tools'
 
       - name: Install Android packages
+        shell: bash
         run: |
+          set -euo pipefail
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
@@ -48,16 +50,16 @@ jobs:
           ZIP_FILE="NovaTV-Neon-Edition-Project.zip"
 
           if [ ! -f "$ZIP_FILE" ]; then
-            ZIP_FILE="$(find . -maxdepth 1 -type f -iname '*.zip' -print -quit)"
+            ZIP_FILE="$(find . -maxdepth 1 -type f \
+              -iname '*.zip' -print -quit)"
           fi
 
           if [ -z "$ZIP_FILE" ] || [ ! -f "$ZIP_FILE" ]; then
-            echo "::error::No project ZIP found in repository root."
+            echo "::error::Project ZIP not found."
             ls -la
             exit 1
           fi
 
-          echo "Extracting: $ZIP_FILE"
           mkdir -p project
           unzip -q "$ZIP_FILE" -d project
 
@@ -67,7 +69,7 @@ jobs:
             -print -quit)"
 
           if [ -z "$APP_GRADLE" ]; then
-            echo "::error::No Android app Gradle file found in ZIP."
+            echo "::error::Android app Gradle file not found."
             find project -maxdepth 5 -type f | head -100
             exit 1
           fi
@@ -76,9 +78,9 @@ jobs:
           PROJECT_DIR="$(realpath "$PROJECT_DIR")"
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Android project: $PROJECT_DIR"
+          echo "Project directory: $PROJECT_DIR"
 
-      - name: Fix Java and Kotlin compatibility
+      - name: Fix Media3 versions and Java compatibility
         shell: bash
         run: |
           set -euo pipefail
@@ -89,78 +91,131 @@ jobs:
           from pathlib import Path
 
           root = Path(sys.argv[1])
-          app = root / "app"
 
-          files = [
-              app / "build.gradle.kts",
-              app / "build.gradle",
-          ]
-
-          found = False
-
-          for p in files:
+          # Update Media3 versions in Gradle configuration files.
+          for p in root.rglob("*"):
               if not p.is_file():
                   continue
 
-              found = True
-              s = p.read_text()
+              if p.name not in (
+                  "build.gradle",
+                  "build.gradle.kts",
+                  "libs.versions.toml"
+              ):
+                  continue
 
-              # Update common Java compatibility declarations.
-              s = re.sub(
-                  r'JavaVersion\.VERSION_(?:1_8|8|11|17)',
+              text = p.read_text()
+              updated = re.sub(
+                  r'(?<![\d.])1\.5\.1(?![\d.])',
+                  '1.6.1',
+                  text
+              )
+
+              if updated != text:
+                  p.write_text(updated)
+                  print(f"Updated Media3 version: {p}")
+
+          # Align common Java and Kotlin JVM target declarations.
+          for p in root.rglob("*"):
+              if not p.is_file() or p.name not in (
+                  "build.gradle",
+                  "build.gradle.kts"
+              ):
+                  continue
+
+              text = p.read_text()
+              original = text
+
+              text = re.sub(
+                  r'JavaVersion\.VERSION_(?:1_8|8|11)',
                   'JavaVersion.VERSION_17',
-                  s
+                  text
               )
 
-              # Update existing Kotlin JVM target declarations.
-              s = re.sub(
-                  r'jvmTarget\s*=\s*["\'](?:1\.8|8|11|17)["\']',
+              text = re.sub(
+                  r'jvmTarget\s*=\s*["\'](?:1\.8|8|11)["\']',
                   'jvmTarget = "17"',
-                  s
+                  text
               )
 
-              # Configure Java compatibility if absent.
-              if "compileOptions {" not in s:
-                  block = (
-                      "\n    compileOptions {\n"
-                      "        sourceCompatibility = "
-                      "JavaVersion.VERSION_17\n"
-                      "        targetCompatibility = "
-                      "JavaVersion.VERSION_17\n"
-                      "    }\n"
+              if text != original:
+                  p.write_text(text)
+                  print(f"Updated JVM compatibility: {p}")
+
+          # Ensure Google Maven and Maven Central are configured
+          # in settings.gradle when dependency repositories are declared there.
+          settings_files = [
+              root / "settings.gradle.kts",
+              root / "settings.gradle"
+          ]
+
+          for p in settings_files:
+              if not p.is_file():
+                  continue
+
+              text = p.read_text()
+
+              if "dependencyResolutionManagement" in text:
+                  match = re.search(
+                      r'dependencyResolutionManagement\s*\{',
+                      text
                   )
 
-                  if p.name == "build.gradle":
-                      block = (
-                          "\n    compileOptions {\n"
-                          "        sourceCompatibility "
-                          "JavaVersion.VERSION_17\n"
-                          "        targetCompatibility "
-                          "JavaVersion.VERSION_17\n"
-                          "    }\n"
-                      )
-
-                  match = re.search(r'(?m)^android\s*\{', s)
-
                   if match:
-                      s = s[:match.end()] + block + s[match.end():]
-                  else:
-                      raise SystemExit(
-                          f"No android block found in {p}"
-                      )
+                      start = match.end()
+                      depth = 1
+                      i = start
 
-              # For Kotlin DSL, add a JVM toolchain if no target
-              # declaration or toolchain is present.
-              if p.name.endswith(".kts") and "jvmToolchain(" not in s:
-                  if "kotlin {" not in s:
-                      s += "\n\nkotlin {\n    jvmToolchain(17)\n}\n"
+                      while i < len(text) and depth:
+                          if text[i] == "{":
+                              depth += 1
+                          elif text[i] == "}":
+                              depth -= 1
+                          i += 1
 
-              p.write_text(s)
-              print(f"Updated compatibility settings: {p}")
+                      block = text[start:i-1]
 
-          if not found:
-              raise SystemExit("App Gradle build file not found.")
+                      if "repositories" not in block:
+                          repos = (
+                              '\n    repositories {\n'
+                              '        google()\n'
+                              '        mavenCentral()\n'
+                              '    }\n'
+                          )
+                          text = text[:start] + repos + text[start:]
+                          p.write_text(text)
+                          print(f"Added dependency repositories: {p}")
+
+          print("Dependency and compatibility checks completed.")
           PY
+
+      - name: Diagnose Media3 dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking Media3 declarations..."
+
+          grep -RInE \
+            'media3-ui-compose|media3-ui:|media3Version|media3_version' \
+            "$PROJECT_DIR" \
+            --include='*.gradle' \
+            --include='*.gradle.kts' \
+            --include='*.toml' || true
+
+          echo "Checking repository configuration..."
+
+          for f in \
+            "$PROJECT_DIR/settings.gradle" \
+            "$PROJECT_DIR/settings.gradle.kts" \
+            "$PROJECT_DIR/build.gradle" \
+            "$PROJECT_DIR/build.gradle.kts"
+          do
+            if [ -f "$f" ]; then
+              echo "----- $f -----"
+              grep -nE 'google\(\)|mavenCentral\(\)|repositories|dependencyResolutionManagement' "$f" || true
+            fi
+          done
 
       - name: Build APK
         shell: bash
@@ -168,8 +223,8 @@ jobs:
           set -euo pipefail
           cd "$PROJECT_DIR"
 
-          if [ -f gradlew ]; then
-            chmod +x gradlew
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
             ./gradlew assembleDebug --no-daemon
           else
             gradle assembleDebug --no-daemon
@@ -188,7 +243,7 @@ jobs:
             exit 1
           fi
 
-          echo "APK successfully generated: $APK"
+          echo "APK generated successfully:"
           ls -lh "$APK"
 
       - name: Upload APK
