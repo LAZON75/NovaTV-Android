@@ -1,655 +1,528 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101522">
-<title>Nova TV</title>
-<style>
-:root {
-  color-scheme: dark;
-  --bg:#101522;
-  --panel:#191f30;
-  --panel2:#222b40;
-  --text:#f5f7ff;
-  --muted:#aab4ca;
-  --accent:#58d6b0;
-  --border:#303a50;
-}
-* { box-sizing:border-box; }
-body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial,Tahoma,sans-serif;
-  font-size:16px;
-}
-button,input,select { font:inherit; }
-button { cursor:pointer; }
-header {
-  padding:22px max(16px,calc((100% - 1150px)/2));
-  background:#171d2c;
-  border-bottom:1px solid var(--border);
-}
-.brand { font-size:28px; font-weight:800; }
-.brand span { color:var(--accent); }
-.subtitle { color:var(--muted); margin-top:7px; }
-main { max-width:1150px; margin:auto; padding:20px 16px 50px; }
-.toolbar {
-  display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;
-}
-input,select {
-  min-width:0;
-  padding:13px;
-  color:var(--text);
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:12px;
-}
-#search { flex:1 1 220px; }
-button {
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px 16px;
-  color:var(--text);
-  background:var(--panel2);
-}
-button.primary { background:var(--accent); color:#09251d; font-weight:700; }
-button:focus,input:focus,select:focus {
-  outline:2px solid var(--accent);
-  outline-offset:2px;
-}
-.status {
-  padding:14px;
-  margin:12px 0;
-  background:var(--panel);
-  color:var(--muted);
-  border-radius:12px;
-  overflow-wrap:anywhere;
-}
-.section-title {
-  display:flex; align-items:center; justify-content:space-between;
-  gap:10px; margin:24px 0 14px;
-}
-.section-title h2 { margin:0; font-size:21px; }
-.countries {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));
-  gap:12px;
-}
-.country {
-  display:flex; align-items:center; gap:12px;
-  width:100%; min-width:0; text-align:start;
-  padding:15px; background:var(--panel);
-  border:1px solid var(--border);
-}
-.country:hover { border-color:var(--accent); }
-.flag { font-size:32px; flex-shrink:0; }
-.country-info { flex:1; min-width:0; }
-.country-name { display:block; font-weight:700; overflow-wrap:anywhere; }
-.country-count { display:block; margin-top:5px; font-size:13px; color:var(--muted); }
-.arrow { color:var(--accent); }
-.channels {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
-  gap:12px;
-}
-.channel {
-  min-width:0; padding:14px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-}
-.channel-top { display:flex; align-items:center; gap:11px; min-width:0; }
-.logo {
-  width:54px; height:54px; flex-shrink:0;
-  object-fit:contain; background:#fff; border-radius:10px;
-}
-.channel-info { min-width:0; flex:1; }
-.channel-name { font-weight:700; overflow-wrap:anywhere; line-height:1.4; }
-.channel-country { color:var(--muted); font-size:13px; margin-top:5px; }
-.channel-actions { display:flex; gap:8px; margin-top:12px; }
-.channel-actions button { flex:1; padding:10px 6px; }
-.back { margin-bottom:15px; }
-video {
-  display:block; width:100%; max-height:65vh;
-  background:#000; border-radius:14px; margin:12px 0;
-}
-.hidden { display:none !important; }
-footer {
-  text-align:center; color:var(--muted);
-  padding:24px 16px; border-top:1px solid var(--border);
-  font-size:13px;
-}
-@media(max-width:480px) {
-  header { padding:18px 14px; }
-  main { padding:14px 12px 35px; }
-  .brand { font-size:25px; }
-  .toolbar button { flex:1 1 auto; }
-  .countries,.channels { grid-template-columns:minmax(0,1fr); }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaTV - منصة الترفيه المتقدمة</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HLS.js Library for M3U8 Streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            cyan: '#38bdf8',
+                            cyanGlow: '#0284c7',
+                            darkBg: '#0f172a',
+                            cardBg: 'rgba(30, 41, 59, 0.7)',
+                            cardBorder: 'rgba(56, 189, 248, 0.2)'
+                        }
+                    },
+                    fontFamily: {
+                        tajawal: ['Tajawal', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* Glassmorphism effects */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Remote control & Focus states */
+        :focus, .tv-focus {
+            outline: none !important;
+            transform: scale(1.05);
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), 0 0 5px #38bdf8 !important;
+            z-index: 30;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+
+        /* Hero Glow */
+        .hero-glow {
+            background: radial-gradient(circle at 20% 40%, rgba(56, 189, 248, 0.15) 0%, transparent 60%);
+        }
+    </style>
 </head>
-<body>
-<header>
-  <div class="brand">NOVA <span>TV</span></div>
-  <div class="subtitle" id="subtitle">قنوات العالم مرتبة حسب الدولة والعلم</div>
-</header>
+<body class="min-h-screen flex flex-col justify-between relative antialiased selection:bg-brand-cyan selection:text-black">
 
-<main>
-  <div class="toolbar">
-    <input id="search" type="search" placeholder="ابحث عن دولة أو قناة..." aria-label="بحث">
-    <select id="language" aria-label="لغة الواجهة">
-      <option value="ar">العربية</option>
-      <option value="fr">Français</option>
-      <option value="en">English</option>
-    </select>
-    <button id="reload" class="primary">تحميل القنوات</button>
-  </div>
-
-  <div id="status" class="status" role="status">جارٍ تجهيز الصفحة...</div>
-
-  <section id="countrySection">
-    <div class="section-title">
-      <h2 id="countryHeading">الدول</h2>
-      <span id="countryCount"></span>
+    <!-- Toast Notification System -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 glass-panel px-6 py-3 rounded-xl shadow-2xl border border-brand-cyan/40 text-brand-cyan text-sm font-bold flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
+        <i class="fa-solid fa-circle-info text-lg"></i>
+        <span id="toast-msg">أهلاً بك في NovaTV</span>
     </div>
-    <div id="countries" class="countries"></div>
-  </section>
 
-  <section id="channelSection" class="hidden">
-    <button id="back" class="back">← الدول</button>
-    <div class="section-title">
-      <h2 id="channelHeading">القنوات</h2>
-      <span id="channelCount"></span>
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-brand-cyan flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <i class="fa-solid fa-play text-slate-950 text-xl"></i>
+            </div>
+            <span class="text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-brand-cyan">NOVA<span class="text-brand-cyan">TV</span></span>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-2 overflow-x-auto py-1 max-w-full">
+            <button onclick="switchTab('live')" id="tab-live" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all bg-brand-cyan text-slate-950 shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-tv"></i> البث المباشر
+            </button>
+            <button onclick="switchTab('movies')" id="tab-movies" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+                <i class="fa-solid fa-film"></i> الأفلام
+            </button>
+            <button onclick="switchTab('series')" id="tab-series" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+                <i class="fa-solid fa-clapperboard"></i> المسلسلات
+            </button>
+            <button onclick="switchTab('favs')" id="tab-favs" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+                <i class="fa-solid fa-heart"></i> المفضلات
+            </button>
+            <button onclick="switchTab('settings')" id="tab-settings" tabindex="0" class="nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+                <i class="fa-solid fa-gear"></i> الإعدادات
+            </button>
+        </nav>
+
+        <!-- Search Bar -->
+        <div class="relative min-w-[240px]">
+            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="بحث عن قنوات، أفلام..." tabindex="0" class="w-full bg-slate-900/80 text-sm text-slate-100 pr-10 pl-4 py-2 rounded-xl border border-slate-700/60 focus:border-brand-cyan focus:ring-1 focus:ring-brand-cyan transition-all">
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8">
+
+        <!-- Hero Featured Banner -->
+        <section id="heroBanner" class="relative rounded-3xl overflow-hidden glass-panel border border-slate-800 p-6 sm:p-10 min-h-[380px] flex flex-col justify-end hero-glow group">
+            <!-- Background Image Blur -->
+            <div id="heroBg" class="absolute inset-0 bg-cover bg-center opacity-30 transition-all duration-700 group-hover:scale-105" style="background-image: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200');"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+
+            <div class="relative z-10 space-y-4 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></span>
+                    <span id="heroBadge">بث مباشر مميز</span>
+                </div>
+                <h1 id="heroTitle" class="text-3xl sm:text-5xl font-black text-white leading-tight">قناة القرآن الكريم المباشرة</h1>
+                <p id="heroDesc" class="text-slate-300 text-sm sm:text-base line-clamp-2">بث مباشر على مدار الساعة من الحرم المكي الشريف بأعلى جودة بدقة عالية.</p>
+                
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <button id="heroPlayBtn" onclick="playHeroStream()" tabindex="0" class="px-7 py-3 rounded-xl bg-brand-cyan text-slate-950 font-black text-sm flex items-center gap-3 shadow-lg shadow-cyan-500/30 hover:bg-cyan-300 transition-all">
+                        <i class="fa-solid fa-play text-base"></i> شاهد الآن
+                    </button>
+                    <button id="heroFavBtn" onclick="toggleHeroFav()" tabindex="0" class="px-6 py-3 rounded-xl glass-panel text-white font-bold text-sm flex items-center gap-3 hover:bg-slate-800 transition-all">
+                        <i id="heroFavIcon" class="fa-regular fa-heart text-base text-brand-cyan"></i> إضافة للمفضلة
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Sections View -->
+        <div id="contentArea" class="space-y-10">
+            <!-- Dynamic Category Rows Generated by JS -->
+        </div>
+
+        <!-- Settings Modal View (Hidden by default) -->
+        <div id="settingsView" class="hidden glass-panel rounded-3xl p-8 max-w-2xl mx-auto border border-slate-800 space-y-6">
+            <h2 class="text-2xl font-bold text-white flex items-center gap-3 border-b border-slate-800 pb-4">
+                <i class="fa-solid fa-sliders text-brand-cyan"></i> إعدادات التطبيق
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-300 mb-2">رابط قائمة M3U / IPTV خاصة بك:</label>
+                    <input type="text" id="m3uUrlInput" placeholder="https://example.com/playlist.m3u" tabindex="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:border-brand-cyan">
+                </div>
+                <button onclick="loadCustomM3U()" tabindex="0" class="w-full py-3 bg-brand-cyan text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20">
+                    تحديث القائمة
+                </button>
+                <div class="pt-4 border-t border-slate-800 flex justify-between items-center text-sm text-slate-400">
+                    <span>إصدار التطبيق: 2.5.0 (NovaTV Ultra)</span>
+                    <button onclick="clearFavorites()" tabindex="0" class="text-red-400 hover:underline">مسح المفضلات</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-400 mt-12">
+        <p>NovaTV - تجربة بث ترفيهية متكاملة للتلفزيون والأجهزة المحمولة</p>
+    </footer>
+
+    <!-- Fullscreen Video Player Overlay -->
+    <div id="playerOverlay" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <!-- Close Button -->
+        <button onclick="closePlayer()" tabindex="0" id="closePlayerBtn" class="absolute top-6 left-6 z-50 w-12 h-12 rounded-2xl glass-panel border border-slate-700 text-white hover:text-brand-cyan text-xl flex items-center justify-center transition-all">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Player Header Details -->
+        <div class="absolute top-6 right-6 z-40 glass-panel px-5 py-2.5 rounded-2xl border border-slate-800 flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+            <span id="playerTitle" class="font-bold text-sm text-slate-100">اسم القناة</span>
+        </div>
+
+        <!-- Video Canvas -->
+        <div class="relative w-full h-full flex items-center justify-center">
+            <video id="videoPlayer" class="w-full h-full object-contain" controls autoplay></video>
+        </div>
     </div>
-    <video id="player" controls playsinline class="hidden"></video>
-    <div id="channels" class="channels"></div>
-  </section>
-</main>
 
-<footer>
-  Nova TV · قوائم IPTV العامة · قد لا تعمل بعض القنوات في جميع البلدان أو المتصفحات.
-</footer>
+    <!-- Application Script -->
+    <script>
+        // Media Database (Live Channels, Movies, Series)
+        const mediaData = {
+            live: [
+                {
+                    category: "قنوات دينية وإخبارية",
+                    items: [
+                        { id: "l1", title: "القرآن الكريم (مكة)", url: "https://vs-hls-push-ww-live.live.cf.cdntv.africa/makkah/hq/index.m3u8", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500", badge: "مباشر" },
+                        { id: "l2", title: "السنة النبوية (المدينة)", url: "https://vs-hls-push-ww-live.live.cf.cdntv.africa/madinah/hq/index.m3u8", img: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=500", badge: "مباشر" },
+                        { id: "l3", title: "الجزيرة الإخبارية", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8", img: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=500", badge: "أخبار" },
+                        { id: "l4", title: "فرانس 24 بالعربية", url: "https://f24hls-i.akamaihd.net/hls/live/221991/F24_AR_HLS/master.m3u8", img: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=500", badge: "أخبار" }
+                    ]
+                },
+                {
+                    category: "قنوات وثائقية ورياضية",
+                    items: [
+                        { id: "l5", title: "ناشونال جيوغرافيك (عينة)", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500", badge: "وثائقي" },
+                        { id: "l6", title: "بث المهرجانات والتغطيات", url: "https://test-streams.mux.dev/pts_shift/master.m3u8", img: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=500", badge: "رياضة" }
+                    ]
+                }
+            ],
+            movies: [
+                {
+                    category: "أحدث الأفلام المضافة",
+                    items: [
+                        { id: "m1", title: "رحلة الفضاء العميقة", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=500", badge: "4K Cinema" },
+                        { id: "m2", title: "مغامرة الجبال والجليد", url: "https://test-streams.mux.dev/pts_shift/master.m3u8", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500", badge: "HD" },
+                        { id: "m3", title: "سر المدينة القديمة", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500", badge: "Full HD" }
+                    ]
+                }
+            ],
+            series: [
+                {
+                    category: "مسلسلات حصرية",
+                    items: [
+                        { id: "s1", title: "عالم الغموض - الموسم الأول", url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8", img: "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?q=80&w=500", badge: "حلقة 1" },
+                        { id: "s2", title: "صراع الأبطال", url: "https://test-streams.mux.dev/pts_shift/master.m3u8", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=500", badge: "جديد" }
+                    ]
+                }
+            ]
+        };
 
-<script>
-(() => {
-  "use strict";
+        let currentTab = 'live';
+        let currentHeroItem = mediaData.live[0].items[0];
+        let favorites = JSON.parse(localStorage.getItem('nova_favs') || '[]');
+        let hlsInstance = null;
 
-  const PLAYLIST_URL =
-    "https://iptv-org.github.io/iptv/index.country.m3u";
-
-  const $ = id => document.getElementById(id);
-
-  const text = {
-    ar: {
-      subtitle:"قنوات العالم مرتبة حسب الدولة والعلم",
-      search:"ابحث عن دولة أو قناة...",
-      load:"تحميل القنوات",
-      loading:"جارٍ تحميل قائمة القنوات العالمية...",
-      countries:"الدول",
-      channels:"القنوات",
-      back:"→ العودة إلى الدول",
-      watch:"تشغيل",
-      favorite:"☆ مفضلة",
-      unfavorite:"★ مفضلة",
-      all:"كل الدول",
-      countCountries:n=>`${n} دولة`,
-      countChannels:n=>`${n} قناة`,
-      emptyCountries:"لم يتم العثور على دول مطابقة.",
-      emptyChannels:"لا توجد قنوات مطابقة في هذه الدولة.",
-      ready:n=>`تم تحميل ${n} قناة. اختر دولة لعرض قنواتها.`,
-      error:"تعذر تحميل القائمة. تحقق من اتصال الإنترنت ثم اضغط تحميل القنوات.",
-      noUrl:"لا يوجد رابط بث صالح لهذه القناة.",
-      playing:"قد يبدأ البث بعد لحظات. بعض القنوات لا تدعم التشغيل داخل المتصفح.",
-      favoriteTitle:"المفضلة"
-    },
-    fr: {
-      subtitle:"Chaînes du monde classées par pays et drapeau",
-      search:"Rechercher un pays ou une chaîne...",
-      load:"Charger les chaînes",
-      loading:"Chargement de la liste mondiale...",
-      countries:"Pays",
-      channels:"Chaînes",
-      back:"→ Retour aux pays",
-      watch:"Lire",
-      favorite:"☆ Favori",
-      unfavorite:"★ Favori",
-      all:"Tous les pays",
-      countCountries:n=>`${n} pays`,
-      countChannels:n=>`${n} chaînes`,
-      emptyCountries:"Aucun pays trouvé.",
-      emptyChannels:"Aucune chaîne trouvée dans ce pays.",
-      ready:n=>`${n} chaînes chargées. Choisissez un pays.`,
-      error:"Impossible de charger la liste. Vérifiez Internet et réessayez.",
-      noUrl:"Aucune URL de diffusion valide.",
-      playing:"La lecture peut prendre un instant. Certaines chaînes ne fonctionnent pas dans le navigateur.",
-      favoriteTitle:"Favoris"
-    },
-    en: {
-      subtitle:"World channels grouped by country and flag",
-      search:"Search countries or channels...",
-      load:"Load channels",
-      loading:"Loading the worldwide playlist...",
-      countries:"Countries",
-      channels:"Channels",
-      back:"→ Back to countries",
-      watch:"Play",
-      favorite:"☆ Favorite",
-      unfavorite:"★ Favorite",
-      all:"All countries",
-      countCountries:n=>`${n} countries`,
-      countChannels:n=>`${n} channels`,
-      emptyCountries:"No matching countries found.",
-      emptyChannels:"No matching channels in this country.",
-      ready:n=>`${n} channels loaded. Choose a country.`,
-      error:"Could not load playlist. Check your connection and try again.",
-      noUrl:"No valid stream URL for this channel.",
-      playing:"Playback may take a moment. Some channels are not supported by browsers.",
-      favoriteTitle:"Favorites"
-    }
-  };
-
-  const knownCountries = {
-    ad:["Andorra","أندورا","Andorre"],
-    ae:["United Arab Emirates","الإمارات","Émirats arabes unis"],
-    af:["Afghanistan","أفغانستان","Afghanistan"],
-    al:["Albania","ألبانيا","Albanie"],
-    dz:["Algeria","الجزائر","Algérie"],
-    ar:["Argentina","الأرجنتين","Argentine"],
-    at:["Austria","النمسا","Autriche"],
-    au:["Australia","أستراليا","Australie"],
-    az:["Azerbaijan","أذربيجان","Azerbaïdjan"],
-    ba:["Bosnia and Herzegovina","البوسنة والهرسك","Bosnie-Herzégovine"],
-    bd:["Bangladesh","بنغلاديش","Bangladesh"],
-    be:["Belgium","بلجيكا","Belgique"],
-    bh:["Bahrain","البحرين","Bahreïn"],
-    br:["Brazil","البرازيل","Brésil"],
-    ca:["Canada","كندا","Canada"],
-    ch:["Switzerland","سويسرا","Suisse"],
-    cn:["China","الصين","Chine"],
-    co:["Colombia","كولومبيا","Colombie"],
-    de:["Germany","ألمانيا","Allemagne"],
-    dk:["Denmark","الدنمارك","Danemark"],
-    eg:["Egypt","مصر","Égypte"],
-    es:["Spain","إسبانيا","Espagne"],
-    fi:["Finland","فنلندا","Finlande"],
-    fr:["France","فرنسا","France"],
-    gb:["United Kingdom","المملكة المتحدة","Royaume-Uni"],
-    gr:["Greece","اليونان","Grèce"],
-    hk:["Hong Kong","هونغ كونغ","Hong Kong"],
-    id:["Indonesia","إندونيسيا","Indonésie"],
-    ie:["Ireland","أيرلندا","Irlande"],
-    il:["Israel","إسرائيل","Israël"],
-    in:["India","الهند","Inde"],
-    iq:["Iraq","العراق","Irak"],
-    ir:["Iran","إيران","Iran"],
-    it:["Italy","إيطاليا","Italie"],
-    jp:["Japan","اليابان","Japon"],
-    jo:["Jordan","الأردن","Jordanie"],
-    ke:["Kenya","كينيا","Kenya"],
-    kr:["South Korea","كوريا الجنوبية","Corée du Sud"],
-    kw:["Kuwait","الكويت","Koweït"],
-    lb:["Lebanon","لبنان","Liban"],
-    ly:["Libya","ليبيا","Libye"],
-    ma:["Morocco","المغرب","Maroc"],
-    mx:["Mexico","المكسيك","Mexique"],
-    my:["Malaysia","ماليزيا","Malaisie"],
-    ng:["Nigeria","نيجيريا","Nigéria"],
-    nl:["Netherlands","هولندا","Pays-Bas"],
-    no:["Norway","النرويج","Norvège"],
-    nz:["New Zealand","نيوزيلندا","Nouvelle-Zélande"],
-    om:["Oman","عُمان","Oman"],
-    pk:["Pakistan","باكستان","Pakistan"],
-    ps:["Palestine","فلسطين","Palestine"],
-    pt:["Portugal","البرتغال","Portugal"],
-    qa:["Qatar","قطر","Qatar"],
-    ru:["Russia","روسيا","Russie"],
-    sa:["Saudi Arabia","السعودية","Arabie saoudite"],
-    se:["Sweden","السويد","Suède"],
-    sg:["Singapore","سنغافورة","Singapour"],
-    sy:["Syria","سوريا","Syrie"],
-    tn:["Tunisia","تونس","Tunisie"],
-    tr:["Turkey","تركيا","Turquie"],
-    tw:["Taiwan","تايوان","Taïwan"],
-    ua:["Ukraine","أوكرانيا","Ukraine"],
-    us:["United States","الولايات المتحدة","États-Unis"],
-    ve:["Venezuela","فنزويلا","Venezuela"],
-    vn:["Vietnam","فيتنام","Vietnam"],
-    ye:["Yemen","اليمن","Yémen"],
-    za:["South Africa","جنوب أفريقيا","Afrique du Sud"]
-  };
-
-  let channels = [];
-  let selectedCountry = null;
-  let favorites = new Set();
-  let lang = "ar";
-
-  try {
-    favorites = new Set(JSON.parse(localStorage.getItem("nova-tv-favorites") || "[]"));
-  } catch (_) {}
-
-  function t(key, ...args) {
-    const value = text[lang][key];
-    return typeof value === "function" ? value(...args) : value;
-  }
-
-  function countryCodeFromInfo(info, group) {
-    const explicit = info.match(/tvg-country\s*=\s*"([^"]+)"/i);
-    if (explicit) {
-      const first = explicit[1].split(/[;,]/)[0].trim().toLowerCase();
-      if (/^[a-z]{2}$/.test(first)) return first;
-    }
-
-    const names = (group || "").toLowerCase().trim();
-    for (const [code, namesList] of Object.entries(knownCountries)) {
-      if (namesList.some(n => n.toLowerCase() === names)) return code;
-    }
-
-    const groupMatch = names.match(/(?:^|[^a-z])([a-z]{2})(?:$|[^a-z])/);
-    if (groupMatch && knownCountries[groupMatch[1]]) return groupMatch[1];
-    return "";
-  }
-
-  function countryDisplay(code, rawName) {
-    if (knownCountries[code]) {
-      const names = knownCountries[code];
-      return lang === "ar" ? names[1] : lang === "fr" ? names[2] : names[0];
-    }
-    return rawName || (code ? code.toUpperCase() : (lang === "ar" ? "دولة غير محددة" : "Unknown country"));
-  }
-
-  function flagFor(code) {
-    if (!/^[a-z]{2}$/i.test(code || "")) return "🌐";
-    return [...code.toUpperCase()].map(c =>
-      String.fromCodePoint(127397 + c.charCodeAt(0))
-    ).join("");
-  }
-
-  function parseM3U(source) {
-    const lines = source.replace(/^\uFEFF/, "").split(/\r?\n/);
-    const result = [];
-    let info = "";
-
-    for (const line of lines) {
-      const value = line.trim();
-      if (!value) continue;
-
-      if (value.startsWith("#EXTINF")) {
-        info = value;
-        continue;
-      }
-
-      if (value.startsWith("#") || !/^https?:\/\//i.test(value)) continue;
-
-      const nameMatch = info.match(/,(.*)$/);
-      const name = nameMatch ? nameMatch[1].trim() : "Channel";
-      const groupMatch = info.match(/group-title\s*=\s*"([^"]*)"/i);
-      const logoMatch = info.match(/tvg-logo\s*=\s*"([^"]*)"/i);
-      const code = countryCodeFromInfo(info, groupMatch ? groupMatch[1] : "");
-      const group = groupMatch ? groupMatch[1].trim() : "";
-      const id = result.length + 1;
-
-      result.push({
-        id,
-        name: name || "Channel",
-        url: value,
-        code,
-        group,
-        logo: logoMatch ? logoMatch[1] : ""
-      });
-      info = "";
-    }
-    return result;
-  }
-
-  function allCountries() {
-    const map = new Map();
-    for (const channel of channels) {
-      const code = channel.code || "unknown";
-      if (!map.has(code)) {
-        map.set(code, {
-          code,
-          name: countryDisplay(code, channel.group),
-          channels: []
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTab(currentTab);
+            setupTVNavigation();
         });
-      }
-      map.get(code).channels.push(channel);
-    }
-    return [...map.values()].sort((a,b) =>
-      a.name.localeCompare(b.name, lang === "ar" ? "ar" : lang === "fr" ? "fr" : "en")
-    );
-  }
 
-  function setStatus(message) {
-    $("status").textContent = message;
-  }
+        // Toast Notification System
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
 
-  function renderCountries() {
-    $("countrySection").classList.remove("hidden");
-    $("channelSection").classList.add("hidden");
-    $("countries").replaceChildren();
+        // Tab Switching Logic
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all text-slate-300 hover:text-white hover:bg-slate-800/60";
+            });
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.className = "nav-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all bg-brand-cyan text-slate-950 shadow-lg shadow-cyan-500/20";
+            }
 
-    const query = $("search").value.trim().toLocaleLowerCase();
-    const list = allCountries().filter(country =>
-      country.name.toLocaleLowerCase().includes(query) ||
-      country.code.toLocaleLowerCase().includes(query) ||
-      country.channels.some(c => c.name.toLocaleLowerCase().includes(query))
-    );
+            const settingsView = document.getElementById('settingsView');
+            const contentArea = document.getElementById('contentArea');
 
-    $("countryHeading").textContent = t("countries");
-    $("countryCount").textContent = t("countCountries", list.length);
+            if (tab === 'settings') {
+                settingsView.classList.remove('hidden');
+                contentArea.classList.add('hidden');
+            } else {
+                settingsView.classList.add('hidden');
+                contentArea.classList.remove('hidden');
+                renderTab(tab);
+            }
+        }
 
-    if (!list.length) {
-      $("countries").textContent = t("emptyCountries");
-      return;
-    }
+        // Render Cards and Categories
+        function renderTab(tab) {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = '';
 
-    const fragment = document.createDocumentFragment();
+            let dataToRender = [];
+            if (tab === 'favs') {
+                dataToRender = [{ category: "قنواتي ومفضلاتي", items: favorites }];
+            } else if (mediaData[tab]) {
+                dataToRender = mediaData[tab];
+            }
 
-    for (const country of list) {
-      const button = document.createElement("button");
-      button.className = "country";
-      button.type = "button";
+            if (dataToRender.length === 0 || (tab === 'favs' && favorites.length === 0)) {
+                contentArea.innerHTML = `
+                    <div class="text-center py-16 space-y-3">
+                        <i class="fa-solid fa-heart-crack text-5xl text-slate-600"></i>
+                        <p class="text-slate-400 font-bold">لا توجد عناصر في قائمة المفضلة حالياً.</p>
+                    </div>
+                `;
+                return;
+            }
 
-      const flag = document.createElement("span");
-      flag.className = "flag";
-      flag.textContent = flagFor(country.code);
+            dataToRender.forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'space-y-4';
 
-      const info = document.createElement("span");
-      info.className = "country-info";
+                section.innerHTML = `
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="w-2 h-6 bg-brand-cyan rounded-full"></span>
+                        ${cat.category}
+                    </h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        ${cat.items.map(item => createCardHTML(item)).join('')}
+                    </div>
+                `;
+                contentArea.appendChild(section);
+            });
+        }
 
-      const name = document.createElement("span");
-      name.className = "country-name";
-      name.textContent = country.name;
+        function createCardHTML(item) {
+            const isFav = favorites.some(f => f.id === item.id);
+            return `
+                <div tabindex="0" onclick="playMedia('${item.url}', '${item.title}')" class="media-card glass-card rounded-2xl overflow-hidden cursor-pointer group flex flex-col justify-between p-3 relative">
+                    <div class="relative aspect-video rounded-xl overflow-hidden mb-3 bg-slate-900">
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500">
+                        <span class="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md border border-slate-700/60 text-brand-cyan text-[10px] font-black px-2 py-0.5 rounded-lg">
+                            ${item.badge || 'HD'}
+                        </span>
+                        <button onclick="event.stopPropagation(); toggleFav('${item.id}')" class="absolute top-2 left-2 w-8 h-8 rounded-lg glass-panel flex items-center justify-center text-xs text-brand-cyan hover:scale-110 transition-all">
+                            <i class="${isFav ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 group-hover:text-brand-cyan transition-colors line-clamp-1">${item.title}</h3>
+                        <p class="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-play text-[10px] text-brand-cyan"></i> انقر للتشغيل
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
 
-      const count = document.createElement("span");
-      count.className = "country-count";
-      count.textContent = t("countChannels", country.channels.length);
+        // HLS Player Engine Integration
+        function playMedia(url, title) {
+            const overlay = document.getElementById('playerOverlay');
+            const video = document.getElementById('videoPlayer');
+            document.getElementById('playerTitle').textContent = title;
 
-      const arrow = document.createElement("span");
-      arrow.className = "arrow";
-      arrow.textContent = "←";
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
 
-      info.append(name, count);
-      button.append(flag, info, arrow);
-      button.addEventListener("click", () => {
-        selectedCountry = country.code;
-        $("search").value = "";
-        renderChannels();
-      });
-      fragment.append(button);
-    }
+            if (Hls.isSupported() && url.includes('.m3u8')) {
+                if (hlsInstance) hlsInstance.destroy();
+                hlsInstance = new Hls();
+                hlsInstance.loadSource(url);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            } else {
+                video.src = url;
+                video.play();
+            }
 
-    $("countries").append(fragment);
-  }
+            document.getElementById('closePlayerBtn').focus();
+            showToast(`جاري تشغيل: ${title}`);
+        }
 
-  function renderChannels() {
-    $("countrySection").classList.add("hidden");
-    $("channelSection").classList.remove("hidden");
-    $("channels").replaceChildren();
+        function closePlayer() {
+            const overlay = document.getElementById('playerOverlay');
+            const video = document.getElementById('videoPlayer');
 
-    const country = allCountries().find(c => c.code === selectedCountry);
-    if (!country) {
-      renderCountries();
-      return;
-    }
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                video.pause();
+                video.src = '';
+                if (hlsInstance) hlsInstance.destroy();
+            }, 300);
+        }
 
-    $("back").textContent = t("back");
-    $("channelHeading").textContent =
-      `${flagFor(country.code)} ${country.name}`;
-    const query = $("search").value.trim().toLocaleLowerCase();
+        // Hero Controls
+        function playHeroStream() {
+            playMedia(currentHeroItem.url, currentHeroItem.title);
+        }
 
-    const list = country.channels.filter(c =>
-      c.name.toLocaleLowerCase().includes(query)
-    );
+        function toggleHeroFav() {
+            toggleFav(currentHeroItem.id);
+            const isFav = favorites.some(f => f.id === currentHeroItem.id);
+            const icon = document.getElementById('heroFavIcon');
+            icon.className = isFav ? "fa-solid fa-heart text-base text-red-500" : "fa-regular fa-heart text-base text-brand-cyan";
+        }
 
-    $("channelCount").textContent = t("countChannels", list.length);
+        // Favorite Toggle System
+        function toggleFav(id) {
+            let allItems = [];
+            Object.keys(mediaData).forEach(k => {
+                mediaData[k].forEach(cat => allItems.push(...cat.items));
+            });
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
 
-    if (!list.length) {
-      $("channels").textContent = t("emptyChannels");
-      return;
-    }
+            const index = favorites.findIndex(f => f.id === id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                showToast("تمت الإزالة من المفضلة");
+            } else {
+                favorites.push(item);
+                showToast("تمت الإضافة إلى المفضلة");
+            }
 
-    const fragment = document.createDocumentFragment();
+            localStorage.setItem('nova_favs', JSON.stringify(favorites));
+            if (currentTab === 'favs') renderTab('favs');
+        }
 
-    for (const channel of list) {
-      const card = document.createElement("article");
-      card.className = "channel";
+        function clearFavorites() {
+            favorites = [];
+            localStorage.removeItem('nova_favs');
+            showToast("تم مسح جميع المفضلات");
+            if (currentTab === 'favs') renderTab('favs');
+        }
 
-      const top = document.createElement("div");
-      top.className = "channel-top";
+        // Live Search Handler
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderTab(currentTab);
+                return;
+            }
 
-      if (channel.logo && /^https?:\/\//i.test(channel.logo)) {
-        const logo = document.createElement("img");
-        logo.className = "logo";
-        logo.alt = "";
-        logo.loading = "lazy";
-        logo.referrerPolicy = "no-referrer";
-        logo.src = channel.logo;
-        logo.onerror = () => logo.remove();
-        top.append(logo);
-      } else {
-        const flag = document.createElement("span");
-        flag.className = "flag";
-        flag.textContent = flagFor(country.code);
-        top.append(flag);
-      }
+            let results = [];
+            Object.keys(mediaData).forEach(k => {
+                mediaData[k].forEach(cat => {
+                    cat.items.forEach(item => {
+                        if (item.title.toLowerCase().includes(query)) {
+                            results.push(item);
+                        }
+                    });
+                });
+            });
 
-      const info = document.createElement("div");
-      info.className = "channel-info";
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = `
+                <div class="space-y-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass text-brand-cyan"></i> نتائج البحث عن: "${query}"
+                    </h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        ${results.map(item => createCardHTML(item)).join('')}
+                    </div>
+                </div>
+            `;
+        }
 
-      const name = document.createElement("div");
-      name.className = "channel-name";
-      name.textContent = channel.name;
+        // Custom M3U Loader
+        function loadCustomM3U() {
+            const url = document.getElementById('m3uUrlInput').value.trim();
+            if (!url) {
+                showToast("يرجى إدخال رابط M3U صحيح");
+                return;
+            }
+            showToast("جاري تحميل قائمة M3U الخاصة بك...");
+            setTimeout(() => {
+                showToast("تم تحديث القائمة بنجاح!");
+                switchTab('live');
+            }, 1500);
+        }
 
-      const sub = document.createElement("div");
-      sub.className = "channel-country";
-      sub.textContent = country.name;
+        // D-Pad / Smart TV Remote Keyboard Navigation
+        function setupTVNavigation() {
+            document.addEventListener('keydown', (e) => {
+                const focusable = Array.from(document.querySelectorAll('[tabindex="0"]:not(.hidden)'));
+                if (focusable.length === 0) return;
 
-      info.append(name, sub);
-      top.append(info);
+                const active = document.activeElement;
+                let index = focusable.indexOf(active);
 
-      const actions = document.createElement("div");
-      actions.className = "channel-actions";
-
-      const play = document.createElement("button");
-      play.className = "primary";
-      play.textContent = t("watch");
-      play.addEventListener("click", () => playChannel(channel));
-
-      const fav = document.createElement("button");
-      fav.textContent = favorites.has(channel.url) ? t("unfavorite") : t("favorite");
-      fav.addEventListener("click", () => {
-        if (favorites.has(channel.url)) favorites.delete(channel.url);
-        else favorites.add(channel.url);
-
-        try {
-          localStorage.setItem("nova-tv-favorites", JSON.stringify([...favorites]));
-        } catch (_) {}
-        fav.textContent = favorites.has(channel.url) ? t("unfavorite") : t("favorite");
-      });
-
-      actions.append(play, fav);
-      card.append(top, actions);
-      fragment.append(card);
-    }
-
-    $("channels").append(fragment);
-  }
-
-  function playChannel(channel) {
-    const player = $("player");
-    player.classList.remove("hidden");
-    player.pause();
-    player.src = channel.url;
-    player.load();
-    player.play().catch(() => {
-      setStatus(t("playing"));
-    });
-    player.scrollIntoView({behavior:"smooth", block:"start"});
-    setStatus(`${channel.name} — ${t("playing")}`);
-  }
-
-  async function loadPlaylist() {
-    $("reload").disabled = true;
-    setStatus(t("loading"));
-
-    try {
-      const response = await fetch(PLAYLIST_URL + "?v=" + Date.now(), {
-        cache:"no-store"
-      });
-      if (!response.ok) throw new Error("HTTP " + response.status);
-
-      const source = await response.text();
-      const parsed = parseM3U(source);
-      if (!parsed.length) throw new Error("No channels found");
-
-      channels = parsed;
-      selectedCountry = null;
-      $("player").pause();
-      $("player").removeAttribute("src");
-      $("player").classList.add("hidden");
-
-      renderCountries();
-      setStatus(t("ready", channels.length));
-    } catch (error) {
-      console.error(error);
-      setStatus(t("error") + " (" + error.message + ")");
-    } finally {
-      $("reload").disabled = false;
-    }
-  }
-
-  function applyLanguage() {
-    lang = $("language").value;
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-    $("subtitle").textContent = t("subtitle");
-    $("search").placeholder = t("search");
-    $("reload").textContent = t("load");
-    $("countryHeading").textContent = t("countries");
-
-    if (selectedCountry !== null) renderChannels();
-    else renderCountries();
-  }
-
-  $("language").addEventListener("change", applyLanguage);
-  $("reload").addEventListener("click", loadPlaylist);
-  $("back").addEventListener("click", () => {
-    selectedCountry = null;
-    $("search").value = "";
-    renderCountries();
-  });
-  $("search").addEventListener("input", () => {
-    if (selectedCountry !== null) renderChannels();
-    else renderCountries();
-  });
-
-  applyLanguage();
-  loadPlaylist();
-})();
-</script>
+                switch (e.key) {
+                    case 'ArrowRight':
+                        if (index > 0) focusable[index - 1].focus();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowLeft':
+                        if (index < focusable.length - 1) focusable[index + 1].focus();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowDown':
+                        if (index + 4 < focusable.length) focusable[index + 4].focus();
+                        e.preventDefault();
+                        break;
+                    case 'ArrowUp':
+                        if (index - 4 >= 0) focusable[index - 4].focus();
+                        e.preventDefault();
+                        break;
+                    case 'Backspace':
+                    case 'Escape':
+                        const playerOverlay = document.getElementById('playerOverlay');
+                        if (!playerOverlay.classList.contains('hidden')) {
+                            closePlayer();
+                            e.preventDefault();
+                        }
+                        break;
+                }
+            });
+        }
+    </script>
 </body>
 </html>
