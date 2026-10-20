@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieBoxTV - Ultimate Streaming Experience</title>
+    <title>MovieBoxTV - Pro UI</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,20 +13,20 @@
 
     <style>
         :root {
-            --bg-main: #07090e;
-            --bg-card: rgba(18, 24, 38, 0.85);
-            --bg-glass: rgba(255, 255, 255, 0.05);
-            --primary-blue: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.4);
-            --accent-red: #ef4444;
+            --bg-main: #0a0d14;
+            --bg-card: rgba(22, 28, 45, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.06);
+            --primary-blue: #2563eb;
+            --primary-light: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.35);
             --pill-active: #ffffff;
             --text-main: #ffffff;
             --text-sub: #94a3b8;
-            --border-subtle: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
         }
 
         [data-theme="neon"] {
-            --primary-blue: #ff007f;
+            --primary-light: #ff007f;
             --primary-glow: rgba(255, 0, 127, 0.4);
         }
 
@@ -47,7 +47,7 @@
             padding-bottom: 40px;
         }
 
-        /* 3D Background Canvas */
+        /* 3D Canvas Particles */
         #webgl-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -56,13 +56,13 @@
             pointer-events: none;
         }
 
-        /* Top Bar Navigation */
+        /* Navigation Header */
         .top-navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 40px;
-            background: rgba(7, 9, 14, 0.85);
+            padding: 16px 40px;
+            background: rgba(10, 13, 20, 0.9);
             backdrop-filter: blur(20px);
             position: sticky;
             top: 0;
@@ -73,7 +73,7 @@
         .brand-logo {
             font-size: 22px;
             font-weight: 800;
-            color: var(--primary-blue);
+            color: var(--primary-light);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -130,12 +130,12 @@
         }
 
         .icon-btn:hover, .icon-btn:focus {
-            background: var(--primary-blue);
+            background: var(--primary-light);
             color: #000;
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* View Containers */
+        /* Views Layout */
         .view-section {
             display: none;
             padding: 20px 40px;
@@ -151,83 +151,147 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Section Titles */
-        .section-header-title {
-            font-size: 26px;
+        /* Home Hero Layout */
+        .hero-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .poster-card {
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            border: 1px solid var(--border-subtle);
+            height: 440px;
+        }
+
+        .poster-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .movie-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .movie-title {
+            font-size: 34px;
             font-weight: 800;
-            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .movie-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-sub);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Cleaned Category Quick Cards Grid */
+        .quick-categories-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .category-card {
+            height: 180px;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.25s ease;
+            background: #1e293b;
+        }
+
+        .category-card:hover, .category-card:focus {
+            transform: translateY(-5px) scale(1.03);
+            border-color: var(--primary-light);
+            box-shadow: 0 10px 25px var(--primary-glow);
+        }
+
+        .category-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.7);
+        }
+
+        .category-card-overlay {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            padding: 15px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* Grid Layouts for Movies/Series */
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+        .category-card-overlay i {
+            font-size: 18px;
+            color: var(--primary-light);
         }
 
-        .media-card {
+        .category-card-overlay span {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        /* Continue Watching */
+        .section-subtitle {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            margin-top: 25px;
+        }
+
+        .continue-card {
             background: var(--bg-card);
             border-radius: 16px;
-            overflow: hidden;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 320px;
             border: 1px solid var(--border-subtle);
-            cursor: pointer;
-            transition: all 0.25s ease;
-            position: relative;
         }
 
-        .media-card:hover, .media-card:focus {
-            transform: translateY(-6px) scale(1.03);
-            border-color: var(--primary-blue);
-            box-shadow: 0 10px 25px var(--primary-glow);
+        .continue-icon {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
         }
 
-        .media-img-wrap {
-            width: 100%;
-            height: 250px;
+        .progress-bar {
+            width: 100%; height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 6px;
             overflow: hidden;
-            position: relative;
         }
 
-        .media-img-wrap img {
-            width: 100%;
+        .progress-fill {
             height: 100%;
-            object-fit: cover;
+            background: var(--primary-light);
         }
 
-        .badge-rating {
-            position: absolute;
-            top: 10px; right: 10px;
-            background: rgba(0, 0, 0, 0.75);
-            color: #facc15;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-        }
-
-        .media-body {
-            padding: 12px;
-        }
-
-        .media-title {
-            font-size: 14px;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .media-info {
-            font-size: 12px;
-            color: var(--text-sub);
-            margin-top: 4px;
-        }
-
-        /* Live TV Specific Layout */
+        /* Live TV View */
         .live-layout {
             display: grid;
             grid-template-columns: 460px 1fr;
@@ -255,37 +319,6 @@
             object-fit: cover;
         }
 
-        .live-badge {
-            position: absolute;
-            top: 12px; left: 12px;
-            background: var(--accent-red);
-            color: #fff;
-            font-size: 11px; font-weight: 800;
-            padding: 4px 10px; border-radius: 6px;
-            display: flex; align-items: center; gap: 6px;
-        }
-
-        .country-selector {
-            display: flex; gap: 10px;
-            overflow-x: auto;
-            margin-bottom: 20px; padding-bottom: 5px;
-        }
-
-        .country-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-            padding: 8px 18px; border-radius: 12px;
-            font-size: 14px; font-weight: 700;
-            cursor: pointer; white-space: nowrap;
-            transition: 0.2s;
-        }
-
-        .country-btn.active, .country-btn:hover {
-            background: var(--primary-blue);
-            color: #000;
-        }
-
         .channels-pro-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -303,7 +336,7 @@
 
         .channel-pro-card:hover, .channel-pro-card:focus {
             background: rgba(56, 189, 248, 0.15);
-            border-color: var(--primary-blue);
+            border-color: var(--primary-light);
             transform: translateY(-3px);
         }
 
@@ -314,25 +347,27 @@
             font-size: 20px; flex-shrink: 0;
         }
 
-        /* Settings Modal Overlay */
+        /* Settings Slide Modal */
         .settings-modal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(15px);
-            z-index: 1000;
+            z-index: 10000;
             display: none;
             align-items: center; justify-content: center;
         }
 
-        .settings-modal.active { display: flex; }
+        .settings-modal.active {
+            display: flex !important;
+        }
 
         .settings-content {
             background: #121824;
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
             padding: 30px;
-            width: 90%; max-width: 500px;
+            width: 90%; max-width: 480px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             position: relative;
         }
@@ -341,15 +376,15 @@
             position: absolute;
             top: 20px; right: 20px;
             background: transparent; border: none;
-            color: var(--text-sub); font-size: 20px;
+            color: var(--text-sub); font-size: 22px;
             cursor: pointer;
         }
 
-        .settings-item { margin-bottom: 20px; }
+        .settings-item { margin-bottom: 18px; }
 
         .settings-item label {
             display: block; font-size: 14px; font-weight: 700;
-            margin-bottom: 8px; color: var(--primary-blue);
+            margin-bottom: 8px; color: var(--primary-light);
         }
 
         .settings-item select, .settings-item input {
@@ -360,7 +395,7 @@
         }
 
         .btn-save-settings {
-            width: 100%; background: var(--primary-blue);
+            width: 100%; background: var(--primary-light);
             color: #000; border: none; padding: 12px;
             border-radius: 12px; font-weight: 800;
             font-size: 15px; cursor: pointer;
@@ -368,17 +403,18 @@
 
         @media (max-width: 900px) {
             .top-navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
-            .live-layout { grid-template-columns: 1fr; }
+            .hero-layout, .live-layout { grid-template-columns: 1fr; }
+            .quick-categories-grid { grid-template-columns: repeat(2, 1fr); }
             .view-section { padding: 15px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Dynamic 3D Background Canvas -->
+    <!-- Dynamic 3D Particles Background -->
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Navigation Header -->
+    <!-- Top Navbar -->
     <nav class="top-navbar">
         <div class="brand-logo" onclick="switchView('homeView')">
             <i class="fa-solid fa-play"></i> MovieBoxTV
@@ -393,59 +429,102 @@
         </div>
 
         <div class="nav-right">
-            <button class="icon-btn" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
+            <button class="icon-btn" id="settingsBtn" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
         </div>
     </nav>
 
-    <!-- SECTION 1: PAGE D'ACCUEIL (HOME) -->
+    <!-- HOME VIEW (Page d'accueil) -->
     <div id="homeView" class="view-section active">
-        <div class="section-header-title"><i class="fa-solid fa-house" style="color:var(--primary-blue);"></i> Accueil</div>
-        <div class="media-grid" id="homeGrid"></div>
-    </div>
+        <div class="hero-layout">
+            <div class="poster-card">
+                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=600&auto=format&fit=crop" alt="Cinema Hero">
+            </div>
 
-    <!-- SECTION 2: FILMS (MOVIES LIBRARY) -->
-    <div id="moviesView" class="view-section">
-        <div class="section-header-title"><i class="fa-solid fa-film" style="color:var(--primary-blue);"></i> Bibliothèque de Films</div>
-        <div class="media-grid" id="moviesGrid"></div>
-    </div>
+            <div class="movie-details">
+                <h1 class="movie-title">MovieBoxTV - Cinema & Live Streaming</h1>
+                <div class="movie-meta">
+                    <span style="color:#facc15;"><i class="fa-solid fa-star"></i> 8.8</span>
+                    <span>2026</span>
+                    <span>Cinema, Live Channels, Series</span>
+                </div>
 
-    <!-- SECTION 3: SÉRIES TV -->
-    <div id="seriesView" class="view-section">
-        <div class="section-header-title"><i class="fa-solid fa-tv" style="color:var(--primary-blue);"></i> Séries & Saisons</div>
-        <div class="media-grid" id="seriesGrid"></div>
-    </div>
-
-    <!-- SECTION 4: ANIMÉS & ENFANTS -->
-    <div id="animesView" class="view-section">
-        <div class="section-header-title"><i class="fa-solid fa-child" style="color:var(--primary-blue);"></i> Animés & Enfants</div>
-        <div class="media-grid" id="animesGrid"></div>
-    </div>
-
-    <!-- SECTION 5: TV EN DIRECT (LIVE IPTV CHANNELS) -->
-    <div id="liveView" class="view-section">
-        <div class="country-selector">
-            <button class="country-btn active" onclick="filterCountry('all')">🌍 Toutes les chaînes</button>
-            <button class="country-btn" onclick="filterCountry('fr')">🇫🇷 France</button>
-            <button class="country-btn" onclick="filterCountry('ar')">🇸🇦 Arabes</button>
+                <!-- Clean 4 Quick Category Cards -->
+                <div class="quick-categories-grid">
+                    <div class="category-card" onclick="switchView('moviesView')">
+                        <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop" alt="Films">
+                        <div class="category-card-overlay">
+                            <i class="fa-solid fa-film"></i>
+                            <span>Films</span>
+                        </div>
+                    </div>
+                    <div class="category-card" onclick="switchView('seriesView')">
+                        <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" alt="Séries">
+                        <div class="category-card-overlay">
+                            <i class="fa-solid fa-tv"></i>
+                            <span>Séries TV</span>
+                        </div>
+                    </div>
+                    <div class="category-card" onclick="switchView('liveView')">
+                        <img src="https://images.unsplash.com/photo-1593784991095-a205069470b6?q=80&w=400&auto=format&fit=crop" alt="TV en direct">
+                        <div class="category-card-overlay">
+                            <i class="fa-solid fa-satellite-dish"></i>
+                            <span>TV en direct</span>
+                        </div>
+                    </div>
+                    <div class="category-card" onclick="switchView('animesView')">
+                        <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=400&auto=format&fit=crop" alt="Animés">
+                        <div class="category-card-overlay">
+                            <i class="fa-solid fa-child"></i>
+                            <span>Animés</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <div class="section-subtitle">Continuer à regarder</div>
+        <div class="continue-card">
+            <div class="continue-icon"><i class="fa-solid fa-clock"></i></div>
+            <div>
+                <div style="font-weight:800; font-size:14px;">Peaky Blinders</div>
+                <div style="color:var(--text-sub); font-size:12px; margin-top:2px;">11% visionné</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:11%;"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILMS VIEW -->
+    <div id="moviesView" class="view-section">
+        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-film" style="color:var(--primary-light);"></i> Bibliothèque de Films</h2>
+        <div class="channels-pro-grid" id="moviesGrid"></div>
+    </div>
+
+    <!-- SÉRIES VIEW -->
+    <div id="seriesView" class="view-section">
+        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-tv" style="color:var(--primary-light);"></i> Séries & Saisons</h2>
+        <div class="channels-pro-grid" id="seriesGrid"></div>
+    </div>
+
+    <!-- ANIMÉS VIEW -->
+    <div id="animesView" class="view-section">
+        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-child" style="color:var(--primary-light);"></i> Animés & Enfants</h2>
+        <div class="channels-pro-grid" id="animesGrid"></div>
+    </div>
+
+    <!-- LIVE TV VIEW -->
+    <div id="liveView" class="view-section">
         <div class="live-layout">
-            <!-- Left Side Video Player Preview -->
             <div class="player-preview-card">
                 <div class="video-box">
-                    <span class="live-badge"><i class="fa-solid fa-circle"></i> LIVE</span>
                     <video id="livePlayer" controls autoplay></video>
                 </div>
                 <div style="padding: 20px;">
-                    <h2 id="currentChannelName" style="font-size:22px; font-weight:800;">قناة القرآن الكريم</h2>
-                    <p id="currentChannelSub" style="color:var(--text-sub); font-size:13px; margin-top:4px;">البث المباشر · 4K Ultra HD</p>
+                    <h2 id="currentChannelName" style="font-size:20px; font-weight:800;">قناة القرآن الكريم</h2>
+                    <p style="color:var(--text-sub); font-size:13px; margin-top:4px;">البث المباشر HD</p>
                 </div>
             </div>
 
-            <!-- Right Side Channels Organized Grid -->
-            <div>
-                <div class="channels-pro-grid" id="channelsContainer"></div>
-            </div>
+            <div class="channels-pro-grid" id="channelsContainer"></div>
         </div>
     </div>
 
@@ -453,14 +532,13 @@
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
             <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="font-size: 22px; margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--primary-blue);"></i> Paramètres النظام</h2>
+            <h2 style="font-size: 20px; margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--primary-light);"></i> Paramètres النظام</h2>
 
             <div class="settings-item">
                 <label>Langue / اللغة</label>
                 <select id="langSelect">
                     <option value="fr">Français</option>
                     <option value="ar">العربية</option>
-                    <option value="en">English</option>
                 </select>
             </div>
 
@@ -472,49 +550,25 @@
                 </select>
             </div>
 
-            <div class="settings-item">
-                <label>Lien قائمة M3U الخارجية</label>
-                <input type="text" placeholder="https://example.com/playlist.m3u">
-            </div>
-
-            <button class="btn-save-settings" onclick="saveSettings()">Enregistrer / حفظ الإعدادات</button>
+            <button class="btn-save-settings" onclick="saveSettings()">Enregistrer / حفظ</button>
         </div>
     </div>
 
     <!-- JavaScript Engine -->
     <script>
-        // Data Sources
         const channelsData = [
-            { name: "قناة القرآن الكريم", flag: "🇸🇦", lang: "ar", sub: "مكة المكرمة", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8" },
-            { name: "قناة السنة النبوية", flag: "🇸🇦", lang: "ar", sub: "المدينة المنورة", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8" },
-            { name: "France 24 Arabe", flag: "🇫🇷", lang: "fr", sub: "France · Actualités", url: "https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8" },
-            { name: "Al Jazeera English", flag: "🇶🇦", lang: "ar", sub: "Qatar · News 24/7", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8" },
-            { name: "Sky News Arabia", flag: "🇦🇪", lang: "ar", sub: "UAE · Actualités", url: "https://skynewsarabia.live.net.ae/hls/live/2026131/snaharabic/index.m3u8" }
-        ];
-
-        const moviesData = [
-            { title: "Spider-Man: Brand New Day", rating: "8.0", year: "2026", img: "https://images.unsplash.com/photo-1635805737707-575885ab0820?q=80&w=400&auto=format&fit=crop" },
-            { title: "Inception 4K", rating: "8.8", year: "2010", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop" },
-            { title: "Interstellar", rating: "8.7", year: "2014", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop" },
-            { title: "Avatar: The Way of Water", rating: "7.9", year: "2022", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop" }
-        ];
-
-        const seriesData = [
-            { title: "Peaky Blinders", rating: "8.8", year: "Saison 6", img: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" },
-            { title: "Breaking Bad", rating: "9.5", year: "Saison 5", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" }
+            { name: "قناة القرآن الكريم", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8" },
+            { name: "قناة السنة النبوية", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8" },
+            { name: "France 24 Arabe", flag: "🇫🇷", url: "https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8" },
+            { name: "Al Jazeera English", flag: "🇶🇦", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8" }
         ];
 
         document.addEventListener("DOMContentLoaded", () => {
             init3DBackground();
-            renderMediaGrid('homeGrid', [...moviesData, ...seriesData]);
-            renderMediaGrid('moviesGrid', moviesData);
-            renderMediaGrid('seriesGrid', seriesData);
-            renderMediaGrid('animesGrid', moviesData);
             renderChannels(channelsData);
             playLive(channelsData[0].url, channelsData[0].name);
         });
 
-        /* 3D Interactive Canvas Particles Background */
         function init3DBackground() {
             const canvas = document.getElementById('webgl-canvas');
             const scene = new THREE.Scene();
@@ -523,7 +577,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
 
             const particlesGeometry = new THREE.BufferGeometry();
-            const count = 700;
+            const count = 600;
             const positions = new Float32Array(count * 3);
 
             for(let i = 0; i < count * 3; i++) {
@@ -531,7 +585,7 @@
             }
 
             particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const particlesMaterial = new THREE.PointsMaterial({ size: 0.035, color: 0x38bdf8 });
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.03, color: 0x38bdf8 });
             const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
             scene.add(particleSystem);
 
@@ -540,30 +594,9 @@
             function animate() {
                 requestAnimationFrame(animate);
                 particleSystem.rotation.y += 0.0008;
-                particleSystem.rotation.x += 0.0004;
                 renderer.render(scene, camera);
             }
             animate();
-        }
-
-        /* Render Cards */
-        function renderMediaGrid(elementId, data) {
-            const grid = document.getElementById(elementId);
-            grid.innerHTML = '';
-            data.forEach(item => {
-                grid.innerHTML += `
-                    <div class="media-card" onclick="alert('Lancement de ${item.title}')">
-                        <div class="media-img-wrap">
-                            <span class="badge-rating"><i class="fa-solid fa-star"></i> ${item.rating}</span>
-                            <img src="${item.img}" alt="${item.title}">
-                        </div>
-                        <div class="media-body">
-                            <div class="media-title">${item.title}</div>
-                            <div class="media-info">${item.year}</div>
-                        </div>
-                    </div>
-                `;
-            });
         }
 
         function renderChannels(data) {
@@ -575,18 +608,10 @@
                         <div class="channel-logo-box">${ch.flag}</div>
                         <div>
                             <div style="font-size:14px; font-weight:700;">${ch.name}</div>
-                            <div style="font-size:12px; color:var(--text-sub);">${ch.sub}</div>
                         </div>
                     </div>
                 `;
             });
-        }
-
-        function filterCountry(lang) {
-            document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            if(lang === 'all') renderChannels(channelsData);
-            else renderChannels(channelsData.filter(c => c.lang === lang));
         }
 
         function switchView(viewId) {
@@ -613,10 +638,22 @@
             }
         }
 
-        function openSettings() { document.getElementById('settingsModal').classList.add('active'); }
-        function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
-        function applyTheme(theme) { document.documentElement.setAttribute('data-theme', theme); }
-        function saveSettings() { alert('تم حفظ الإعدادات بنجاح!'); closeSettings(); }
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+
+        function saveSettings() {
+            alert('تم حفظ الإعدادات بنجاح!');
+            closeSettings();
+        }
     </script>
 </body>
 </html>
