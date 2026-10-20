@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'NovaTV-Android-Studio-v2.zip'
+      - '**.zip'
       - '.github/workflows/main.yml'
 
 permissions:
@@ -40,18 +40,62 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Extract project
+      - name: Find and extract project ZIP
+        shell: bash
         run: |
-          unzip -q NovaTV-Android-Studio-v2.zip -d project
-          test -f project/NovaTV-Android-Studio/app/build.gradle.kts
+          set -euo pipefail
+
+          ZIP_FILE="$(find . -maxdepth 1 -type f -iname '*.zip' -print -quit)"
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "::error::No ZIP project file found in repository root."
+            exit 1
+          fi
+
+          echo "Using project archive: $ZIP_FILE"
+
+          mkdir -p project
+          unzip -q "$ZIP_FILE" -d project
+
+          APP_GRADLE="$(find project -type f \
+            \( -path '*/app/build.gradle.kts' \
+            -o -path '*/app/build.gradle' \) \
+            -print -quit)"
+
+          if [ -z "$APP_GRADLE" ]; then
+            echo "::error::Cannot find app/build.gradle.kts or app/build.gradle inside ZIP."
+            echo "Extracted files:"
+            find project -maxdepth 4 -type f | head -100
+            exit 1
+          fi
+
+          PROJECT_DIR="$(dirname "$(dirname "$APP_GRADLE")")"
+          PROJECT_DIR="$(realpath "$PROJECT_DIR")"
+
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Found Android project: $PROJECT_DIR"
 
       - name: Update Media3 dependencies
         run: |
-          find project/NovaTV-Android-Studio -type f \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "*.toml" \) -exec sed -i 's/1\.5\.1/1.6.1/g' {} +
+          find "$PROJECT_DIR" -type f \
+            \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "*.toml" \) \
+            -exec sed -i 's/1\.5\.1/1.6.1/g' {} +
 
       - name: Fix Java and Kotlin compatibility
+        shell: bash
         run: |
-          FILE="project/NovaTV-Android-Studio/app/build.gradle.kts"
+          FILE="$PROJECT_DIR/app/build.gradle.kts"
+
+          if [ ! -f "$FILE" ]; then
+            echo "Kotlin Gradle file not found; checking Groovy Gradle file."
+            FILE="$PROJECT_DIR/app/build.gradle"
+          fi
+
+          if [ ! -f "$FILE" ]; then
+            echo "::error::App Gradle file not found."
+            exit 1
+          fi
+
           python3 - "$FILE" <<'PY'
           import sys
           from pathlib import Path
@@ -72,37 +116,27 @@ jobs:
               'jvmTarget = "17"'
           )
 
-          if 'compileOptions {' not in s:
-              s += '''
-          
-          android {
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-          }
-          '''
-
-          if 'kotlinOptions {' not in s and 'jvmToolchain(17)' not in s:
-              s += '''
-
-          kotlin {
-              jvmToolchain(17)
-          }
-          '''
-
           p.write_text(s)
-          print("Java/Kotlin compatibility updated.")
+          print(f"Updated compatibility settings in {p}")
           PY
 
       - name: Build APK
-        working-directory: project/NovaTV-Android-Studio
-        run: gradle assembleDebug --no-daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$PROJECT_DIR"
+
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --no-daemon
+          else
+            gradle assembleDebug --no-daemon
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Nova-TV-APK
-          path: project/NovaTV-Android-Studio/app/build/outputs/apk/debug/*.apk
+          path: project/**/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
