@@ -1,0 +1,54 @@
+
+name: Build Nova TV APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'NovaTV-Android-Studio.zip'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project files
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extract Nova TV
+        run: |
+          unzip -q NovaTV-Android-Studio.zip -d project
+          test -f project/NovaTV-Android-Studio/app/build.gradle.kts
+
+      - name: Build debug APK
+        working-directory: project/NovaTV-Android-Studio
+        run: gradle assembleDebug --no-daemon
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nova-TV-APK
+          path: project/NovaTV-Android-Studio/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
