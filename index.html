@@ -282,39 +282,136 @@
         .media-card img { width: 100%; height: 230px; object-fit: cover; }
         .media-card-body { padding: 12px; }
 
-        /* Live TV Layout */
+        /* 📺 تصميم احترافي ومثالي لجدول القنوات (مناسب للتلفاز والهاتف) */
         .live-layout {
             display: grid;
-            grid-template-columns: 460px 1fr;
-            gap: 30px;
+            grid-template-columns: 420px 1fr;
+            gap: 25px;
+            align-items: start;
         }
 
         .player-preview-card {
             background: var(--bg-card);
-            border-radius: 20px; overflow: hidden;
+            border-radius: 20px; 
+            overflow: hidden;
             border: 1px solid var(--border-subtle);
-            position: sticky; top: 100px;
+            position: sticky; 
+            top: 95px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
         }
 
-        .video-box { width: 100%; height: 260px; background: #000; position: relative; }
-        .video-box video { width: 100%; height: 100%; object-fit: cover; }
+        .video-box { 
+            width: 100%; 
+            height: 250px; 
+            background: #000; 
+            position: relative; 
+        }
+        
+        .video-box video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
 
+        /* شبكة القنوات الاحترافية */
         .channels-pro-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            max-height: 70vh;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 14px;
+            max-height: 75vh;
             overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        /* تخصيص شريط التمرير (Scrollbar) ليكون أنيقاً */
+        .channels-pro-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .channels-pro-grid::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+        .channels-pro-grid::-webkit-scrollbar-thumb {
+            background: rgba(0, 210, 255, 0.3);
+            border-radius: 10px;
+        }
+        .channels-pro-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-blue);
         }
 
         .channel-pro-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            border-radius: 14px; padding: 15px;
-            display: flex; align-items: center; gap: 12px;
-            cursor: pointer; transition: 0.2s;
+            border-radius: 16px; 
+            padding: 14px 16px;
+            display: flex; 
+            align-items: center; 
+            gap: 14px;
+            cursor: pointer; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .channel-pro-card:hover { border-color: var(--primary-blue); background: rgba(0,210,255,0.1); }
+
+        .channel-pro-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary-blue);
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .channel-pro-card:hover { 
+            border-color: var(--primary-blue); 
+            background: rgba(18, 24, 38, 0.95);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--primary-glow);
+        }
+
+        .channel-pro-card:hover::before {
+            opacity: 1;
+        }
+
+        .channel-pro-card.active-channel {
+            border-color: var(--primary-blue);
+            background: rgba(0, 210, 255, 0.12);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        .channel-pro-card.active-channel::before {
+            opacity: 1;
+        }
+
+        .channel-icon-badge {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .channel-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow: hidden;
+        }
+
+        .channel-name {
+            font-size: 14px; 
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .channel-type {
+            font-size: 11px;
+            color: var(--text-sub);
+        }
 
         /* Settings Modal */
         .settings-modal {
@@ -415,6 +512,20 @@
             padding: 8px 14px; border-radius: 10px;
             font-size: 13px; font-weight: 700;
             cursor: pointer; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* Media Query لشاشات الهواتف */
+        @media (max-width: 900px) {
+            .live-layout {
+                grid-template-columns: 1fr;
+            }
+            .player-preview-card {
+                position: relative;
+                top: 0;
+            }
+            .top-navbar {
+                padding: 12px 20px;
+            }
         }
     </style>
 </head>
@@ -566,10 +677,10 @@
                 </div>
                 <div class="form-group">
                     <label data-i18n="m3uNameLabel">Nom de la liste / اسم القناة</label>
-                    <input type="text" id="m3uNameInput" class="form-input" data-i18n-ph="m3uNamePh" placeholder="Ex: قناة الجزيرة أو قائمة العالم">
+                    <input type="text" id="m3uNameInput" class="form-input" data-i18n-ph="m3uNamePh" placeholder="Ex: قائمة العالم IPTV">
                 </div>
                 <div class="form-group">
-                    <label data-i18n="m3uUrlLabel">رابط M3U أو رابط بث مباشر مباشر (.m3u8)</label>
+                    <label data-i18n="m3uUrlLabel">رابط M3U أو رابط بث مباشر (.m3u8)</label>
                     <input type="url" class="form-input" id="m3uUrlInput" data-i18n-ph="m3uUrlPh" placeholder="https://.../stream.m3u8 أو رابط القائمة">
                 </div>
                 <button class="btn-submit" onclick="loadM3uPlaylist()" data-i18n="m3uBtnSubmit">تحميل وجلب القنوات</button>
@@ -722,7 +833,7 @@
             renderGrid('animesGrid', moviesData);
             renderChannels(defaultChannels);
             if(defaultChannels.length > 0) {
-                playLive(defaultChannels[0].url, defaultChannels[0].name);
+                playLive(defaultChannels[0].url, defaultChannels[0].name, 0);
             }
 
             let savedLang = localStorage.getItem('app_lang') || 'fr';
@@ -791,11 +902,14 @@
             const container = document.getElementById('channelsContainer');
             if(!container) return;
             container.innerHTML = '';
-            data.forEach(ch => {
+            data.forEach((ch, index) => {
                 container.innerHTML += `
-                    <div class="channel-pro-card" onclick="playLive('${ch.url}', '${ch.name}')">
-                        <div style="font-size:22px;">${ch.flag || '📺'}</div>
-                        <div style="font-size:14px; font-weight:700;">${ch.name}</div>
+                    <div class="channel-pro-card ${index === 0 ? 'active-channel' : ''}" id="ch-card-${index}" onclick="playLive('${ch.url}', '${ch.name}', ${index})">
+                        <div class="channel-icon-badge">${ch.flag || '📺'}</div>
+                        <div class="channel-info">
+                            <div class="channel-name">${ch.name}</div>
+                            <div class="channel-type">Live Stream HD</div>
+                        </div>
                     </div>
                 `;
             });
@@ -810,11 +924,16 @@
         }
 
         let hlsInstance = null;
-        function playLive(url, name) {
+        function playLive(url, name, index) {
             const video = document.getElementById('livePlayer');
             const title = document.getElementById('currentChannelName');
             if(title) title.innerText = name;
             if(!video) return;
+
+            // تحديد القناة النشطة بصرياً في الجدول
+            document.querySelectorAll('.channel-pro-card').forEach(c => c.classList.remove('active-channel'));
+            const activeCard = document.getElementById(`ch-card-${index}`);
+            if(activeCard) activeCard.classList.add('active-channel');
 
             if (url.includes('.m3u8') || url.includes('m3u8')) {
                 if (Hls.isSupported()) {
@@ -828,13 +947,11 @@
                     video.play().catch(()=>{});
                 }
             } else {
-                // دعم الروابط المباشرة الأخرى
                 video.src = url;
                 video.play().catch(()=>{});
             }
         }
 
-        /* 🚀 دالة ذكية تدعم جلب قائمة M3U كاملة أو إضافة قناة مباشرة فردية */
         async function loadM3uPlaylist() {
             const urlInput = document.getElementById('m3uUrlInput').value.trim();
             const nameInput = document.getElementById('m3uNameInput').value.trim() || "قناة مباشرة";
@@ -844,12 +961,11 @@
                 return;
             }
 
-            // إذا كان الرابط عبارة عن قناة مباشرة فردية تنتهي بـ m3u8
             if (urlInput.includes('.m3u8') && !urlInput.includes('.m3u')) {
                 defaultChannels.unshift({ name: nameInput, flag: "🔴", url: urlInput });
                 localStorage.setItem('streamvibe_channels', JSON.stringify(defaultChannels));
                 renderChannels(defaultChannels);
-                playLive(urlInput, nameInput);
+                playLive(urlInput, nameInput, 0);
                 
                 alert('تمت إضافة وتشغيل القناة المباشرة بنجاح!');
                 closeSettings();
@@ -857,7 +973,6 @@
                 return;
             }
 
-            // وإلا، تعامل مع الرابط كملف M3U يحتوي على مجموعة قنوات
             alert('جاري تحميل وتحليل القنوات...');
 
             try {
@@ -890,9 +1005,9 @@
                     defaultChannels = parsedChannels;
                     localStorage.setItem('streamvibe_channels', JSON.stringify(defaultChannels));
                     renderChannels(defaultChannels);
-                    playLive(defaultChannels[0].url, defaultChannels[0].name);
+                    playLive(defaultChannels[0].url, defaultChannels[0].name, 0);
                     
-                    alert(`تم بنجاح تحميل واستخراج ${parsedChannels.length} قناة!`);
+                    alert(`تم بنجاح تحميل واستخراج ${parsedChannels.length} قناة وعرضها في الجدول الاحترافي!`);
                     closeSettings();
                     switchView('liveView', document.querySelector('.nav-pill:last-child'));
                 } else {
