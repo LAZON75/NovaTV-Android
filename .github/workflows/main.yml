@@ -14,8 +14,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
 
     steps:
       - name: Checkout
@@ -32,22 +30,23 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Install Android SDK packages
-        shell: bash
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
         run: |
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
-          if [ -z "$SDKMANAGER" ]; then
-            echo "sdkmanager not found"
-            exit 1
-          fi
-          yes | "$SDKMANAGER" --licenses || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Extract project
         run: |
           unzip -q NovaTV-Android-Studio.zip -d project
           find project -name build.gradle.kts
           test -f project/NovaTV-Android-Studio/app/build.gradle.kts
+
+      - name: Update Media3 dependencies
+        run: |
+          find project/NovaTV-Android-Studio -type f \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "*.toml" \) -exec sed -i 's/1\.5\.1/1.6.1/g' {} +
 
       - name: Build APK
         working-directory: project/NovaTV-Android-Studio
