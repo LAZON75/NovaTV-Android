@@ -11,134 +11,257 @@
   --bg:#050b1d;
   --panel:#0b1935;
   --card:#102344;
-  --text:#f6f7ff;
-  --muted:#a9b6ce;
+  --text:#f5f7ff;
+  --muted:#aab8d0;
   --blue:#0866ff;
-  --accent:#06c8f7;
-  --border:#253957;
+  --border:#273b60;
 }
-* { box-sizing:border-box }
+* { box-sizing:border-box; }
 body {
   margin:0;
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
   background:var(--bg);
   color:var(--text);
+  font-family:Arial,"Segoe UI",sans-serif;
+  line-height:1.5;
 }
 body.light {
-  --bg:#f1f5fc;
+  --bg:#f0f4fc;
   --panel:#fff;
   --card:#e5edfa;
-  --text:#101a30;
-  --muted:#5d6b82;
-  --border:#d0daeb;
+  --text:#111c32;
+  --muted:#5b6980;
+  --border:#d2dced;
 }
-button,input,select,textarea { font:inherit }
-button { cursor:pointer }
+button,input,select,textarea { font:inherit; }
+button {
+  cursor:pointer;
+  color:var(--text);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:10px 15px;
+}
+button:hover { border-color:var(--blue); }
+button.primary { background:var(--blue); color:#fff; }
+button.active { background:#34354f; border-color:#7a8dff; }
+
 header {
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px; padding:16px 5%; background:var(--panel);
-  border-bottom:1px solid var(--border); position:sticky; top:0; z-index:5;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px 24px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
 }
-.brand { font-size:25px; font-weight:850; letter-spacing:.5px }
-.brand span { color:var(--blue) }
-.header-actions { display:flex; gap:8px }
-button,.button {
-  border:1px solid var(--border); border-radius:12px;
-  background:var(--card); color:var(--text); padding:10px 14px;
-}
-button.primary { background:var(--blue); border-color:var(--blue); color:white }
-button.active { background:#37354e; border-color:var(--blue) }
+.brand { font-size:27px; font-weight:800; white-space:nowrap; }
+.brand span { color:#1681ff; }
+.header-actions { display:flex; gap:8px; }
+
 nav {
-  display:flex; gap:8px; padding:14px 5%; overflow-x:auto;
-  background:var(--panel); border-bottom:1px solid var(--border);
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:13px 24px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
 }
-nav button { white-space:nowrap; min-width:max-content }
-main { max-width:1100px; margin:auto; padding:22px 5% 50px }
+nav button { white-space:nowrap; }
+
+main {
+  width:100%;
+  max-width:1200px;
+  margin:0 auto;
+  padding:24px;
+  min-width:0;
+}
+.page { display:none; min-width:0; }
+.page.active { display:block; }
+
 .hero {
-  min-height:220px; border-radius:28px; padding:28px;
-  display:flex; align-items:center; justify-content:space-between; gap:20px;
-  color:#07132d;
-  background:linear-gradient(120deg,#f3efff,#d9f9ff);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  min-height:230px;
+  padding:30px;
+  border-radius:26px;
+  background:linear-gradient(120deg,#f1edff,#d9f8ff);
+  color:#101a35;
 }
-.hero h1 { font-size:clamp(25px,4vw,42px); margin:10px 0 }
-.hero p { color:#53647d; line-height:1.8 }
+.hero h1 { font-size:clamp(25px,3vw,40px); line-height:1.35; }
+.hero p { color:#596780; }
 .play-logo {
-  width:100px;height:100px;flex-shrink:0;border-radius:50%;
-  display:grid;place-items:center;background:#c6f3f5;color:var(--blue);
-  font-size:48px;
+  flex:0 0 90px;
+  width:90px;
+  height:90px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#c8f1f4;
+  color:#0866ff;
+  font-size:42px;
 }
 .section-title {
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;margin:28px 0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:28px 0 15px;
 }
-.section-title h2 { margin:0;font-size:23px }
-.muted { color:var(--muted) }
+.section-title h2 { font-size:23px; margin:0; }
+
 .grid {
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));
+  gap:16px;
+  width:100%;
+  min-width:0;
+  align-items:stretch;
 }
 .card {
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:20px;padding:14px;min-width:0;
+  min-width:0;
+  overflow:hidden;
+  padding:16px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
 }
-.category {
-  text-align:center;cursor:pointer;transition:transform .15s;
-}
-.category:hover { transform:translateY(-3px) }
+.category { cursor:pointer; text-align:center; }
 .category-icon {
-  height:100px;border-radius:15px;display:grid;place-items:center;
-  background:linear-gradient(140deg,#f4edff,#e1faff);
-  color:var(--blue);font-size:40px;margin-bottom:12px;
+  height:115px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  margin-bottom:12px;
+  background:linear-gradient(140deg,#f4edff,#e0faff);
+  color:#0866ff;
+  font-size:42px;
 }
-.category strong { display:block;font-size:18px }
-.category small { color:var(--muted);display:block;margin-top:8px }
+.category strong { display:block; font-size:18px; }
+.category small { display:block; color:var(--muted); margin-top:5px; }
+
 .search {
-  width:100%;padding:17px;border-radius:16px;border:1px solid var(--border);
-  background:var(--panel);color:var(--text);margin:8px 0 18px;
+  display:block;
+  width:100%;
+  min-width:0;
+  padding:15px;
+  margin:10px 0 18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--panel);
+  color:var(--text);
 }
-.channel { display:flex;align-items:center;gap:12px }
+.channel {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  min-height:94px;
+}
 .channel-logo {
-  width:48px;height:48px;border-radius:14px;background:var(--card);
-  display:grid;place-items:center;font-size:22px;flex-shrink:0;
+  flex:0 0 45px;
+  width:45px;
+  height:45px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:var(--card);
+  color:#2182ff;
+  font-size:23px;
 }
-.channel-info { flex:1;min-width:0 }
-.channel-info strong { display:block;overflow-wrap:anywhere }
-.channel-info small { color:var(--muted) }
-.icon-btn { padding:8px 11px }
-.badge {
-  display:inline-block;border-radius:20px;padding:4px 9px;
-  background:var(--card);font-size:12px;color:var(--muted);
+.channel-info {
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
 }
-.page { display:none }
-.page.active { display:block }
-.field { display:grid;gap:7px;margin:14px 0 }
-.field label { color:var(--muted) }
+.channel-info strong {
+  display:block;
+  font-size:15px;
+  line-height:1.5;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.channel-info small {
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  overflow-wrap:anywhere;
+}
+.channel-actions {
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  gap:6px;
+}
+.channel-actions button { padding:6px 9px; }
+.field { display:grid; gap:7px; margin:15px 0; }
+.field label { color:var(--muted); }
 .field input,.field select,.field textarea {
-  width:100%;padding:12px;border:1px solid var(--border);
-  background:var(--panel);color:var(--text);border-radius:12px;
+  width:100%;
+  min-width:0;
+  padding:12px;
+  color:var(--text);
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:11px;
 }
-.field textarea { min-height:130px;resize:vertical }
-.row { display:flex;align-items:center;gap:10px;flex-wrap:wrap }
+.field textarea { min-height:135px; resize:vertical; }
 .notice {
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:14px;padding:14px;line-height:1.8;color:var(--muted);
+  padding:14px;
+  line-height:1.8;
+  color:var(--muted);
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:13px;
+  overflow-wrap:anywhere;
 }
-.player {
-  width:100%;aspect-ratio:16/9;background:#000;border-radius:18px;
-  margin:15px 0;display:none;
+.row { display:flex; flex-wrap:wrap; gap:10px; }
+.empty {
+  grid-column:1/-1;
+  padding:30px 12px;
+  text-align:center;
+  color:var(--muted);
+  background:var(--panel);
+  border-radius:14px;
 }
-.player.visible { display:block }
-video { width:100%;height:100%;border-radius:18px }
-.empty { text-align:center;padding:35px 12px;color:var(--muted) }
-footer { text-align:center;padding:24px;color:var(--muted);font-size:13px }
-hr { border:0;border-top:1px solid var(--border);margin:20px 0 }
-@media(max-width:520px) {
-  header { padding:13px 4% }
-  main { padding:18px 4% 35px }
-  nav { padding:12px 4% }
-  .hero { padding:20px;min-height:180px }
-  .play-logo { width:65px;height:65px;font-size:32px }
-  .grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:10px }
-  .category-icon { height:85px }
+.player { display:none; margin:18px 0; }
+.player.visible { display:block; }
+.player video {
+  display:block;
+  width:100%;
+  max-height:65vh;
+  aspect-ratio:16/9;
+  background:#000;
+  border-radius:16px;
+}
+hr { border:0; border-top:1px solid var(--border); margin:25px 0; }
+footer { padding:25px; text-align:center; color:var(--muted); }
+
+@media(min-width:900px) {
+  .grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  #homeCategories { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media(max-width:650px) {
+  header { padding:13px 15px; }
+  .brand { font-size:23px; }
+  nav { padding:12px 15px; flex-wrap:nowrap; overflow-x:auto; }
+  main { padding:17px 14px 35px; }
+  .hero { min-height:175px; padding:19px; gap:12px; }
+  .hero h1 { font-size:24px; }
+  .play-logo { flex-basis:58px; width:58px; height:58px; font-size:29px; }
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  #homeCategories { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .category-icon { height:85px; }
+  .card { padding:11px; }
+  .channel { gap:7px; }
+  .channel-logo { flex-basis:34px; width:34px; height:34px; font-size:18px; }
+  .channel-info strong { font-size:13px; }
+  .channel-actions button { padding:6px; }
+}
+@media(max-width:360px) {
+  .grid { grid-template-columns:minmax(0,1fr); }
 }
 </style>
 </head>
@@ -152,7 +275,7 @@ hr { border:0;border-top:1px solid var(--border);margin:20px 0 }
 </header>
 
 <nav id="navigation">
-  <button data-page="home" class="active" data-i18n="home">الرئيسية</button>
+  <button data-page="home" data-i18n="home">الرئيسية</button>
   <button data-page="live" data-i18n="live">البث المباشر</button>
   <button data-page="movies" data-i18n="movies">الأفلام</button>
   <button data-page="series" data-i18n="series">المسلسلات</button>
@@ -161,244 +284,242 @@ hr { border:0;border-top:1px solid var(--border);margin:20px 0 }
 </nav>
 
 <main>
-  <section class="page active" id="page-home">
-    <div class="hero">
-      <div>
-        <div style="color:#1260df;font-weight:800;letter-spacing:3px">NOVA · ENTERTAINMENT</div>
-        <h1 data-i18n="heroTitle">عالمك الترفيهي، بتصميم جديد</h1>
-        <p data-i18n="heroText">قنوات • أفلام • مسلسلات • رياضة</p>
-        <button class="primary" data-goto="live" data-i18n="explore">ابدأ الاستكشاف</button>
-      </div>
-      <div class="play-logo">▶</div>
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div>
+      <strong style="color:#1260df;letter-spacing:2px">NOVA · ENTERTAINMENT</strong>
+      <h1 data-i18n="heroTitle">عالمك الترفيهي، بتصميم جديد</h1>
+      <p data-i18n="heroText">قنوات • أفلام • مسلسلات • رياضة</p>
+      <button class="primary" data-goto="live" data-i18n="explore">ابدأ الاستكشاف</button>
     </div>
+    <div class="play-logo">▶</div>
+  </div>
 
-    <div class="section-title">
-      <h2 data-i18n="discover">استكشف مكتبتك</h2>
+  <div class="section-title"><h2 data-i18n="discover">استكشف مكتبتك</h2></div>
+  <div class="grid" id="homeCategories">
+    <div class="card category" data-goto="live">
+      <div class="category-icon">▣</div><strong data-i18n="live">البث المباشر</strong>
+      <small data-i18n="openSection">افتح القسم</small>
     </div>
-    <div class="grid">
-      <div class="card category" data-goto="live">
-        <div class="category-icon">▣</div>
-        <strong data-i18n="live">البث المباشر</strong>
-        <small data-i18n="openSection">افتح القسم</small>
-      </div>
-      <div class="card category" data-goto="movies">
-        <div class="category-icon">🎬</div>
-        <strong data-i18n="movies">الأفلام</strong>
-        <small data-i18n="openSection">افتح القسم</small>
-      </div>
-      <div class="card category" data-goto="series">
-        <div class="category-icon">▤</div>
-        <strong data-i18n="series">المسلسلات</strong>
-        <small data-i18n="openSection">افتح القسم</small>
-      </div>
-      <div class="card category" data-goto="favorites">
-        <div class="category-icon">♡</div>
-        <strong data-i18n="favorites">المفضلة</strong>
-        <small data-i18n="openSection">افتح القسم</small>
-      </div>
+    <div class="card category" data-goto="movies">
+      <div class="category-icon">🎬</div><strong data-i18n="movies">الأفلام</strong>
+      <small data-i18n="openSection">افتح القسم</small>
     </div>
-
-    <div class="section-title">
-      <h2 data-i18n="yourChannels">قنواتك ومحتواك</h2>
-      <span id="channelCount" class="muted">0</span>
+    <div class="card category" data-goto="series">
+      <div class="category-icon">▤</div><strong data-i18n="series">المسلسلات</strong>
+      <small data-i18n="openSection">افتح القسم</small>
     </div>
-    <input class="search" id="homeSearch" data-placeholder="search" placeholder="ابحث عن قناة أو مجموعة..." />
-    <div id="homeChannels" class="grid"></div>
-  </section>
-
-  <section class="page" id="page-live">
-    <div class="section-title"><h2 data-i18n="live">البث المباشر</h2></div>
-    <p class="muted" data-i18n="liveDescription">قنواتك المستوردة ستظهر هنا.</p>
-    <input class="search" id="liveSearch" data-placeholder="search" placeholder="ابحث عن قناة..." />
-    <div id="liveChannels" class="grid"></div>
-    <div id="videoPlayer" class="player"><video id="video" controls playsinline></video></div>
-    <p id="playerMessage" class="notice" hidden></p>
-  </section>
-
-  <section class="page" id="page-movies">
-    <div class="section-title"><h2 data-i18n="movies">الأفلام</h2></div>
-    <div class="notice" data-i18n="moviesInfo">هذه مساحة تجريبية للأفلام. أضف قائمة أو اربط مصدر محتوى يدعم الأفلام لعرض محتواك.</div>
-  </section>
-
-  <section class="page" id="page-series">
-    <div class="section-title"><h2 data-i18n="series">المسلسلات</h2></div>
-    <div class="notice" data-i18n="seriesInfo">هذه مساحة تجريبية للمسلسلات. يحتاج عرض مكتبة حقيقية إلى مصدر بيانات مناسب.</div>
-  </section>
-
-  <section class="page" id="page-favorites">
-    <div class="section-title"><h2 data-i18n="favorites">المفضلة</h2></div>
-    <div id="favoriteChannels" class="grid"></div>
-  </section>
-
-  <section class="page" id="page-settings">
-    <div class="section-title"><h2 data-i18n="settings">الإعدادات</h2></div>
-    <div class="card">
-      <div class="field">
-        <label for="language" data-i18n="language">لغة التطبيق</label>
-        <select id="language">
-          <option value="ar">العربية</option>
-          <option value="fr">Français</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="theme" data-i18n="theme">المظهر</label>
-        <select id="theme">
-          <option value="dark" data-i18n="dark">داكن</option>
-          <option value="light" data-i18n="light">فاتح</option>
-        </select>
-      </div>
-      <button class="primary" id="saveSettings" data-i18n="save">حفظ الإعدادات</button>
+    <div class="card category" data-goto="favorites">
+      <div class="category-icon">♡</div><strong data-i18n="favorites">المفضلة</strong>
+      <small data-i18n="openSection">افتح القسم</small>
     </div>
+  </div>
 
-    <hr>
-    <div class="section-title"><h2 data-i18n="importTitle">استيراد قائمة القنوات</h2></div>
-    <div class="notice" data-i18n="importInfo">ألصق محتوى قائمة M3U هنا. يمكنك أيضًا إدخال رابط، لكن بعض المواقع تمنع تحميل القوائم من المتصفح بسبب سياسات CORS.</div>
+  <div class="section-title">
+    <h2 data-i18n="yourChannels">قنواتك ومحتواك</h2>
+    <span id="channelCount">0</span>
+  </div>
+  <input class="search" id="homeSearch" data-placeholder="search" placeholder="ابحث عن قناة أو مجموعة...">
+  <div id="homeChannels" class="grid"></div>
+</section>
+
+<section class="page" id="page-live">
+  <div class="section-title"><h2 data-i18n="live">البث المباشر</h2></div>
+  <p class="muted" data-i18n="liveDescription">قنواتك المستوردة ستظهر هنا.</p>
+  <input class="search" id="liveSearch" data-placeholder="search" placeholder="ابحث عن قناة...">
+  <div id="liveChannels" class="grid"></div>
+  <div id="videoPlayer" class="player"><video id="video" controls playsinline></video></div>
+  <p id="playerMessage" class="notice" hidden></p>
+</section>
+
+<section class="page" id="page-movies">
+  <div class="section-title"><h2 data-i18n="movies">الأفلام</h2></div>
+  <div class="notice" data-i18n="moviesInfo">قسم تجريبي للأفلام؛ يحتاج إلى مصدر محتوى لعرض مكتبة حقيقية.</div>
+</section>
+
+<section class="page" id="page-series">
+  <div class="section-title"><h2 data-i18n="series">المسلسلات</h2></div>
+  <div class="notice" data-i18n="seriesInfo">قسم تجريبي للمسلسلات؛ يحتاج إلى مصدر بيانات مناسب.</div>
+</section>
+
+<section class="page" id="page-favorites">
+  <div class="section-title"><h2 data-i18n="favorites">المفضلة</h2></div>
+  <div id="favoriteChannels" class="grid"></div>
+</section>
+
+<section class="page" id="page-settings">
+  <div class="section-title"><h2 data-i18n="settings">الإعدادات</h2></div>
+  <div class="card">
     <div class="field">
-      <label for="playlistUrl" data-i18n="playlistUrl">رابط قائمة M3U (اختياري)</label>
-      <input id="playlistUrl" type="url" placeholder="https://example.com/playlist.m3u">
+      <label for="language" data-i18n="language">لغة التطبيق</label>
+      <select id="language">
+        <option value="ar">العربية</option>
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+      </select>
     </div>
     <div class="field">
-      <label for="playlistText" data-i18n="playlistText">أو ألصق محتوى M3U</label>
-      <textarea id="playlistText" placeholder="#EXTM3U&#10;#EXTINF:-1,Example Channel&#10;https://example.com/live.m3u8"></textarea>
+      <label for="theme" data-i18n="theme">المظهر</label>
+      <select id="theme">
+        <option value="dark" data-i18n="dark">داكن</option>
+        <option value="light" data-i18n="light">فاتح</option>
+      </select>
     </div>
-    <div class="row">
-      <button class="primary" id="importPlaylist" data-i18n="importButton">استيراد القنوات</button>
-      <button id="clearChannels" data-i18n="clearButton">مسح القنوات</button>
-    </div>
-    <p id="importStatus" class="notice" style="margin-top:14px" hidden></p>
+    <button id="saveSettings" class="primary" data-i18n="save">حفظ الإعدادات</button>
+  </div>
 
-    <hr>
-    <div class="section-title"><h2 data-i18n="demoTitle">اختبار الواجهة</h2></div>
-    <div class="notice" data-i18n="demoInfo">استخدم القنوات التجريبية لاختبار التنقل والمفضلة والبحث. القنوات التجريبية ليست بثًا حقيقيًا.</div>
-    <button id="loadDemo" style="margin-top:12px" data-i18n="demoButton">تحميل قنوات تجريبية</button>
-  </section>
+  <hr>
+  <div class="section-title"><h2 data-i18n="importTitle">استيراد قائمة القنوات</h2></div>
+  <div class="notice" data-i18n="importInfo">ألصق محتوى قائمة M3U. قد تمنع بعض الخوادم تحميل القوائم من المتصفح.</div>
+  <div class="field">
+    <label for="playlistUrl" data-i18n="playlistUrl">رابط قائمة M3U اختياري</label>
+    <input id="playlistUrl" type="url" placeholder="https://example.com/playlist.m3u">
+  </div>
+  <div class="field">
+    <label for="playlistText" data-i18n="playlistText">أو ألصق محتوى M3U</label>
+    <textarea id="playlistText" placeholder="#EXTM3U&#10;#EXTINF:-1,Example Channel&#10;https://example.com/live.m3u8"></textarea>
+  </div>
+  <div class="row">
+    <button id="importPlaylist" class="primary" data-i18n="importButton">استيراد القنوات</button>
+    <button id="clearChannels" data-i18n="clearButton">مسح القنوات</button>
+  </div>
+  <p id="importStatus" class="notice" hidden style="margin-top:12px"></p>
+  <hr>
+  <div class="section-title"><h2 data-i18n="demoTitle">اختبار الواجهة</h2></div>
+  <div class="notice" data-i18n="demoInfo">القنوات التجريبية تختبر الواجهة فقط ولا تحتوي على بث حقيقي.</div>
+  <button id="loadDemo" style="margin-top:12px" data-i18n="demoButton">تحميل قنوات تجريبية</button>
+</section>
 </main>
-
 <footer>Nova TV · Web Preview</footer>
 
 <script>
-const translations = {
-  ar: {
-    home:"الرئيسية",live:"البث المباشر",movies:"الأفلام",series:"المسلسلات",
-    favorites:"المفضلة",settings:"الإعدادات",heroTitle:"عالمك الترفيهي، بتصميم جديد",
-    heroText:"قنوات • أفلام • مسلسلات • رياضة",explore:"ابدأ الاستكشاف",
-    discover:"استكشف مكتبتك",openSection:"افتح القسم",yourChannels:"قنواتك ومحتواك",
-    search:"ابحث عن قناة أو مجموعة...",liveDescription:"قنواتك المستوردة ستظهر هنا.",
-    moviesInfo:"هذه مساحة تجريبية للأفلام. أضف قائمة أو اربط مصدر محتوى يدعم الأفلام لعرض محتواك.",
-    seriesInfo:"هذه مساحة تجريبية للمسلسلات. يحتاج عرض مكتبة حقيقية إلى مصدر بيانات مناسب.",
-    language:"لغة التطبيق",theme:"المظهر",dark:"داكن",light:"فاتح",save:"حفظ الإعدادات",
-    importTitle:"استيراد قائمة القنوات",importInfo:"ألصق محتوى قائمة M3U هنا. يمكنك أيضًا إدخال رابط، لكن بعض المواقع تمنع تحميل القوائم من المتصفح بسبب سياسات CORS.",
-    playlistUrl:"رابط قائمة M3U (اختياري)",playlistText:"أو ألصق محتوى M3U",
-    importButton:"استيراد القنوات",clearButton:"مسح القنوات",demoTitle:"اختبار الواجهة",
-    demoInfo:"استخدم القنوات التجريبية لاختبار التنقل والمفضلة والبحث. القنوات التجريبية ليست بثًا حقيقيًا.",
-    demoButton:"تحميل قنوات تجريبية",play:"تشغيل",stop:"إيقاف",favorite:"إضافة للمفضلة",
-    unfavorite:"إزالة من المفضلة",noChannels:"لا توجد قنوات بعد. أضف قائمة من الإعدادات.",
-    noFavorites:"لا توجد قنوات في المفضلة بعد.",imported:"تم استيراد",
-    channels:"قناة",importError:"تعذر تحميل الرابط. جرّب لصق محتوى القائمة يدويًا.",
-    emptyPlaylist:"لم يتم العثور على قنوات في المحتوى.",cleared:"تم مسح القنوات.",
-    demoLoaded:"تم تحميل قنوات تجريبية.",saved:"تم حفظ الإعدادات.",noStream:"لا يتوفر بث حقيقي لهذه القناة التجريبية.",
-    playerError:"تعذر تشغيل البث في هذا المتصفح أو أن رابط البث غير صالح.",
-    noResults:"لا توجد نتائج.",urlLoad:"جارٍ تحميل القائمة...",badUrl:"أدخل رابطًا صحيحًا."
-  },
-  fr: {
-    home:"Accueil",live:"TV en direct",movies:"Films",series:"Séries",
-    favorites:"Favoris",settings:"Paramètres",heroTitle:"Votre univers de divertissement",
-    heroText:"Chaînes • Films • Séries • Sport",explore:"Explorer",
-    discover:"Explorez votre bibliothèque",openSection:"Ouvrir la section",yourChannels:"Vos chaînes et contenus",
-    search:"Rechercher une chaîne ou un groupe...",liveDescription:"Vos chaînes importées apparaîtront ici.",
-    moviesInfo:"Espace de démonstration pour les films. Ajoutez une liste ou une source de contenu.",
-    seriesInfo:"Espace de démonstration pour les séries. Une source de données est nécessaire.",
-    language:"Langue de l’application",theme:"Apparence",dark:"Sombre",light:"Clair",save:"Enregistrer",
-    importTitle:"Importer une liste de chaînes",importInfo:"Collez le contenu M3U ici. Les liens peuvent être bloqués par les règles CORS du navigateur.",
-    playlistUrl:"URL de la liste M3U (facultatif)",playlistText:"Ou collez le contenu M3U",
-    importButton:"Importer les chaînes",clearButton:"Effacer les chaînes",demoTitle:"Tester l’interface",
-    demoInfo:"Utilisez les chaînes de démonstration pour tester la navigation et les favoris. Elles ne diffusent pas de vidéo réelle.",
-    demoButton:"Charger les chaînes de démonstration",play:"Lire",stop:"Arrêter",favorite:"Ajouter aux favoris",
-    unfavorite:"Retirer des favoris",noChannels:"Aucune chaîne. Ajoutez une liste dans les paramètres.",
-    noFavorites:"Aucune chaîne favorite.",imported:"Importé :",
-    channels:"chaîne(s)",importError:"Impossible de charger l’URL. Collez le contenu M3U manuellement.",
-    emptyPlaylist:"Aucune chaîne trouvée.",cleared:"Chaînes effacées.",
-    demoLoaded:"Chaînes de démonstration chargées.",saved:"Paramètres enregistrés.",noStream:"Aucun flux réel pour cette chaîne de démonstration.",
-    playerError:"Lecture impossible dans ce navigateur ou URL invalide.",
-    noResults:"Aucun résultat.",urlLoad:"Chargement de la liste...",badUrl:"Saisissez une URL valide."
-  },
-  en: {
-    home:"Home",live:"Live TV",movies:"Movies",series:"Series",
-    favorites:"Favorites",settings:"Settings",heroTitle:"Your entertainment world, redesigned",
-    heroText:"Channels • Movies • Series • Sports",explore:"Explore now",
-    discover:"Explore your library",openSection:"Open section",yourChannels:"Your channels and content",
-    search:"Search for a channel or group...",liveDescription:"Your imported channels will appear here.",
-    moviesInfo:"Movie demo area. Add a playlist or connect a content source to display movies.",
-    seriesInfo:"Series demo area. A suitable data source is required for a real library.",
-    language:"App language",theme:"Appearance",dark:"Dark",light:"Light",save:"Save settings",
-    importTitle:"Import channel playlist",importInfo:"Paste M3U content here. URLs may be blocked by browser CORS policies.",
-    playlistUrl:"M3U playlist URL (optional)",playlistText:"Or paste M3U content",
-    importButton:"Import channels",clearButton:"Clear channels",demoTitle:"Test the interface",
-    demoInfo:"Use demo channels to test navigation, favorites and search. Demo channels are not real streams.",
-    demoButton:"Load demo channels",play:"Play",stop:"Stop",favorite:"Add to favorites",
-    unfavorite:"Remove from favorites",noChannels:"No channels yet. Add a playlist in Settings.",
-    noFavorites:"No favorite channels yet.",imported:"Imported",
-    channels:"channel(s)",importError:"Could not load the URL. Try pasting the playlist content manually.",
-    emptyPlaylist:"No channels found in the content.",cleared:"Channels cleared.",
-    demoLoaded:"Demo channels loaded.",saved:"Settings saved.",noStream:"No real stream is available for this demo channel.",
-    playerError:"Playback failed in this browser or the stream URL is invalid.",
-    noResults:"No results.",urlLoad:"Loading playlist...",badUrl:"Enter a valid URL."
-  }
+const words = {
+ar:{
+home:"الرئيسية",live:"البث المباشر",movies:"الأفلام",series:"المسلسلات",
+favorites:"المفضلة",settings:"الإعدادات",heroTitle:"عالمك الترفيهي، بتصميم جديد",
+heroText:"قنوات • أفلام • مسلسلات • رياضة",explore:"ابدأ الاستكشاف",
+discover:"استكشف مكتبتك",openSection:"افتح القسم",yourChannels:"قنواتك ومحتواك",
+search:"ابحث عن قناة أو مجموعة...",liveDescription:"قنواتك المستوردة ستظهر هنا.",
+moviesInfo:"قسم تجريبي للأفلام؛ يحتاج إلى مصدر محتوى لعرض مكتبة حقيقية.",
+seriesInfo:"قسم تجريبي للمسلسلات؛ يحتاج إلى مصدر بيانات مناسب.",
+language:"لغة التطبيق",theme:"المظهر",dark:"داكن",light:"فاتح",save:"حفظ الإعدادات",
+importTitle:"استيراد قائمة القنوات",importInfo:"ألصق محتوى M3U. قد تمنع بعض الخوادم تحميل القوائم من المتصفح.",
+playlistUrl:"رابط قائمة M3U اختياري",playlistText:"أو ألصق محتوى M3U",
+importButton:"استيراد القنوات",clearButton:"مسح القنوات",demoTitle:"اختبار الواجهة",
+demoInfo:"القنوات التجريبية تختبر الواجهة فقط ولا تحتوي على بث حقيقي.",
+demoButton:"تحميل قنوات تجريبية",play:"تشغيل",favorite:"إضافة للمفضلة",
+unfavorite:"إزالة من المفضلة",noChannels:"لا توجد قنوات. أضف قائمة من الإعدادات.",
+noFavorites:"لا توجد قنوات في المفضلة.",noResults:"لا توجد نتائج.",
+imported:"تم استيراد",channels:"قناة",importError:"تعذر تحميل الرابط. ألصق محتوى القائمة يدويًا.",
+emptyPlaylist:"لم يتم العثور على قنوات. تأكد من تنسيق M3U.",
+cleared:"تم مسح القنوات.",demoLoaded:"تم تحميل القنوات التجريبية.",
+saved:"تم حفظ الإعدادات.",noStream:"هذه قناة تجريبية ولا تحتوي على بث حقيقي.",
+playerError:"تعذر تشغيل البث؛ قد لا يدعم المتصفح هذه الصيغة أو قد يكون الرابط غير صالح.",
+urlLoad:"جارٍ تحميل القائمة...",badUrl:"أدخل رابطًا صحيحًا."
+},
+fr:{
+home:"Accueil",live:"TV en direct",movies:"Films",series:"Séries",
+favorites:"Favoris",settings:"Paramètres",heroTitle:"Votre univers de divertissement",
+heroText:"Chaînes • Films • Séries • Sport",explore:"Explorer",
+discover:"Explorez votre bibliothèque",openSection:"Ouvrir la section",
+yourChannels:"Vos chaînes et contenus",search:"Rechercher une chaîne ou un groupe...",
+liveDescription:"Vos chaînes importées apparaîtront ici.",
+moviesInfo:"Section de démonstration pour les films. Une source de contenu est nécessaire.",
+seriesInfo:"Section de démonstration pour les séries. Une source de données est nécessaire.",
+language:"Langue de l’application",theme:"Apparence",dark:"Sombre",light:"Clair",save:"Enregistrer",
+importTitle:"Importer une liste de chaînes",importInfo:"Collez le contenu M3U. Certains serveurs bloquent le chargement depuis le navigateur.",
+playlistUrl:"URL M3U facultative",playlistText:"Ou collez le contenu M3U",
+importButton:"Importer les chaînes",clearButton:"Effacer les chaînes",
+demoTitle:"Tester l’interface",demoInfo:"Les chaînes de démonstration testent l’interface, sans diffusion réelle.",
+demoButton:"Charger les chaînes de démonstration",play:"Lire",favorite:"Ajouter aux favoris",
+unfavorite:"Retirer des favoris",noChannels:"Aucune chaîne. Ajoutez une liste dans les paramètres.",
+noFavorites:"Aucun favori.",noResults:"Aucun résultat.",imported:"Importé :",channels:"chaîne(s)",
+importError:"Impossible de charger l’URL. Collez le contenu M3U manuellement.",
+emptyPlaylist:"Aucune chaîne trouvée. Vérifiez le format M3U.",cleared:"Chaînes effacées.",
+demoLoaded:"Chaînes de démonstration chargées.",saved:"Paramètres enregistrés.",
+noStream:"Cette chaîne de démonstration ne possède aucun flux réel.",
+playerError:"Lecture impossible. Format non pris en charge ou URL invalide.",
+urlLoad:"Chargement de la liste...",badUrl:"Saisissez une URL valide."
+},
+en:{
+home:"Home",live:"Live TV",movies:"Movies",series:"Series",favorites:"Favorites",
+settings:"Settings",heroTitle:"Your entertainment world, redesigned",
+heroText:"Channels • Movies • Series • Sports",explore:"Explore now",
+discover:"Explore your library",openSection:"Open section",yourChannels:"Your channels and content",
+search:"Search for a channel or group...",liveDescription:"Your imported channels will appear here.",
+moviesInfo:"Movie demo section. A content source is needed for a real library.",
+seriesInfo:"Series demo section. A suitable data source is needed.",
+language:"App language",theme:"Appearance",dark:"Dark",light:"Light",save:"Save settings",
+importTitle:"Import channel playlist",importInfo:"Paste M3U content. Some servers block loading from browsers.",
+playlistUrl:"Optional M3U URL",playlistText:"Or paste M3U content",
+importButton:"Import channels",clearButton:"Clear channels",demoTitle:"Test the interface",
+demoInfo:"Demo channels test the interface only; they do not provide real streams.",
+demoButton:"Load demo channels",play:"Play",favorite:"Add to favorites",
+unfavorite:"Remove from favorites",noChannels:"No channels. Add a playlist in Settings.",
+noFavorites:"No favorites yet.",noResults:"No results.",imported:"Imported",
+channels:"channel(s)",importError:"Could not load URL. Paste the M3U content manually.",
+emptyPlaylist:"No channels found. Check the M3U format.",cleared:"Channels cleared.",
+demoLoaded:"Demo channels loaded.",saved:"Settings saved.",
+noStream:"This demo channel has no real stream.",
+playerError:"Playback failed. The format may be unsupported or the URL invalid.",
+urlLoad:"Loading playlist...",badUrl:"Enter a valid URL."
+}
 };
 
 const $ = id => document.getElementById(id);
+let lang = localStorage.getItem("nova-language") || "ar";
+let theme = localStorage.getItem("nova-theme") || "dark";
 let channels = [];
 let favorites = new Set();
-let language = localStorage.getItem("nova-language") || "ar";
-let theme = localStorage.getItem("nova-theme") || "dark";
 
-function t(key) {
-  return (translations[language] && translations[language][key]) || translations.en[key] || key;
+function tr(key) {
+  return (words[lang] && words[lang][key]) || words.en[key] || key;
+}
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
 }
 function applyLanguage() {
-  document.documentElement.lang = language;
-  document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.dataset.i18n;
-    if (t(key)) el.textContent = t(key);
+    el.textContent = tr(el.dataset.i18n);
   });
   document.querySelectorAll("[data-placeholder]").forEach(el => {
-    el.placeholder = t(el.dataset.placeholder);
+    el.placeholder = tr(el.dataset.placeholder);
   });
-  $("language").value = language;
+  $("language").value = lang;
   $("theme").value = theme;
-  renderChannels();
+  renderAll();
 }
 function applyTheme() {
   document.body.classList.toggle("light", theme === "light");
 }
 function showPage(name) {
-  document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   const page = $("page-" + name);
   if (page) page.classList.add("active");
-  document.querySelectorAll("#navigation button").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.page === name);
+  document.querySelectorAll("[data-page]").forEach(b => {
+    b.classList.toggle("active", b.dataset.page === name);
   });
-  if (name === "favorites") renderChannels();
   window.scrollTo({top:0,behavior:"smooth"});
 }
-document.querySelectorAll("[data-page]").forEach(btn => {
-  btn.addEventListener("click", () => showPage(btn.dataset.page));
-});
-document.querySelectorAll("[data-goto]").forEach(el => {
-  el.addEventListener("click", () => showPage(el.dataset.goto));
-});
+document.querySelectorAll("[data-page]").forEach(b =>
+  b.addEventListener("click", () => showPage(b.dataset.page))
+);
+document.querySelectorAll("[data-goto]").forEach(b =>
+  b.addEventListener("click", () => showPage(b.dataset.goto))
+);
 $("headerSettings").addEventListener("click", () => showPage("settings"));
 $("headerLang").addEventListener("click", () => {
-  const order = ["ar","fr","en"];
-  language = order[(order.indexOf(language) + 1) % order.length];
-  localStorage.setItem("nova-language", language);
+  lang = ({ar:"fr",fr:"en",en:"ar"})[lang];
+  localStorage.setItem("nova-language",lang);
   applyLanguage();
 });
 $("language").addEventListener("change", e => {
-  language = e.target.value;
-  localStorage.setItem("nova-language", language);
+  lang = e.target.value;
+  localStorage.setItem("nova-language",lang);
   applyLanguage();
 });
 $("theme").addEventListener("change", e => {
@@ -406,173 +527,163 @@ $("theme").addEventListener("change", e => {
   applyTheme();
 });
 $("saveSettings").addEventListener("click", () => {
-  language = $("language").value;
+  lang = $("language").value;
   theme = $("theme").value;
-  localStorage.setItem("nova-language", language);
-  localStorage.setItem("nova-theme", theme);
+  localStorage.setItem("nova-language",lang);
+  localStorage.setItem("nova-theme",theme);
   applyLanguage();
   applyTheme();
-  alert(t("saved"));
+  alert(tr("saved"));
 });
 
-function renderChannels() {
-  $("channelCount").textContent = channels.length;
-  renderList("homeChannels", channels, $("homeSearch").value);
-  renderList("liveChannels", channels, $("liveSearch").value);
-  renderList("favoriteChannels", channels.filter(c => favorites.has(c.id)), "");
+function saveData() {
+  localStorage.setItem("nova-channels",JSON.stringify(channels));
+  localStorage.setItem("nova-favorites",JSON.stringify([...favorites]));
 }
-function renderList(containerId, list, query) {
-  const container = $(containerId);
-  const q = (query || "").trim().toLowerCase();
-  const filtered = list.filter(c => (c.name + " " + c.group).toLowerCase().includes(q));
+function loadData() {
+  try { channels=JSON.parse(localStorage.getItem("nova-channels")||"[]"); }
+  catch { channels=[]; }
+  try { favorites=new Set(JSON.parse(localStorage.getItem("nova-favorites")||"[]")); }
+  catch { favorites=new Set(); }
+}
+function renderAll() {
+  $("channelCount").textContent = channels.length;
+  renderList("homeChannels",channels,$("homeSearch").value);
+  renderList("liveChannels",channels,$("liveSearch").value);
+  renderList("favoriteChannels",channels.filter(c=>favorites.has(c.id)),"");
+}
+function renderList(containerId,list,query) {
+  const box=$(containerId);
+  const q=(query||"").trim().toLocaleLowerCase();
+  const filtered=list.filter(c=>(c.name+" "+c.group).toLocaleLowerCase().includes(q));
   if (!filtered.length) {
-    const message = list.length ? t("noResults") :
-      (containerId === "favoriteChannels" ? t("noFavorites") : t("noChannels"));
-    container.innerHTML = '<div class="empty">' + escapeHTML(message) + '</div>';
+    const key=list.length?"noResults":
+      (containerId==="favoriteChannels"?"noFavorites":"noChannels");
+    box.innerHTML='<div class="empty">'+escapeHTML(tr(key))+'</div>';
     return;
   }
-  container.innerHTML = filtered.map(c => {
-    const fav = favorites.has(c.id);
+  box.innerHTML=filtered.map(c=>{
+    const fav=favorites.has(c.id);
     return `<article class="card channel">
       <div class="channel-logo">▶</div>
       <div class="channel-info">
         <strong>${escapeHTML(c.name)}</strong>
-        <small>${escapeHTML(c.group || "Nova TV")}</small>
+        <small>${escapeHTML(c.group||"Nova TV")}</small>
       </div>
-      <button class="icon-btn" data-fav="${c.id}" aria-label="Favorite">${fav ? "♥" : "♡"}</button>
-      <button class="icon-btn" data-play="${c.id}" aria-label="Play">▶</button>
+      <div class="channel-actions">
+        <button data-fav="${escapeHTML(c.id)}" aria-label="${fav?tr("unfavorite"):tr("favorite")}">${fav?"♥":"♡"}</button>
+        <button data-play="${escapeHTML(c.id)}" aria-label="${tr("play")}">▶</button>
+      </div>
     </article>`;
   }).join("");
-  container.querySelectorAll("[data-fav]").forEach(btn => btn.addEventListener("click", () => {
-    const id = btn.dataset.fav;
-    if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
-    saveData();
-    renderChannels();
+  box.querySelectorAll("[data-fav]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.dataset.fav;
+    if(favorites.has(id)) favorites.delete(id); else favorites.add(id);
+    saveData(); renderAll();
   }));
-  container.querySelectorAll("[data-play]").forEach(btn => btn.addEventListener("click", () => {
-    playChannel(btn.dataset.play);
+  box.querySelectorAll("[data-play]").forEach(b=>b.addEventListener("click",()=>{
+    playChannel(b.dataset.play);
   }));
-}
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, ch => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[ch]);
-}
-function saveData() {
-  localStorage.setItem("nova-channels", JSON.stringify(channels));
-  localStorage.setItem("nova-favorites", JSON.stringify([...favorites]));
-}
-function loadData() {
-  try { channels = JSON.parse(localStorage.getItem("nova-channels") || "[]"); } catch { channels=[]; }
-  try { favorites = new Set(JSON.parse(localStorage.getItem("nova-favorites") || "[]")); } catch { favorites=new Set(); }
 }
 function parseM3U(text) {
-  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-  const result = [];
-  let current = null;
-  for (const line of lines) {
-    if (line.startsWith("#EXTINF")) {
-      const name = line.split(",").slice(1).join(",").trim() || "Unnamed channel";
-      const groupMatch = line.match(/group-title="([^"]*)"/i);
-      current = {
-        id: "ch-" + Math.random().toString(36).slice(2) + Date.now().toString(36),
-        name,
-        group: groupMatch ? groupMatch[1] : "Nova TV",
-        url: ""
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const result=[];
+  let current=null;
+  for(const line of lines) {
+    if(line.startsWith("#EXTINF")) {
+      const comma=line.indexOf(",");
+      let name=comma>=0?line.slice(comma+1).trim():"";
+      name=name.replace(/tvg-name="([^"]+)"/i,"$1").trim();
+      const groupMatch=line.match(/group-title="([^"]*)"/i);
+      current={
+        id:"ch-"+Math.random().toString(36).slice(2)+Date.now().toString(36),
+        name:name||"Channel",
+        group:groupMatch?groupMatch[1]:"Nova TV",
+        url:""
       };
-    } else if (!line.startsWith("#") && current) {
-      current.url = line;
-      result.push(current);
-      current = null;
+    } else if(line.startsWith("#EXTGRP:") && current && !current.group) {
+      current.group=line.slice(8).trim();
+    } else if(!line.startsWith("#") && current) {
+      if(/^https?:\/\//i.test(line)) {
+        current.url=line;
+        result.push(current);
+        current=null;
+      }
     }
   }
   return result;
 }
-$("importPlaylist").addEventListener("click", async () => {
-  const status = $("importStatus");
-  status.hidden = false;
-  let text = $("playlistText").value.trim();
-  const url = $("playlistUrl").value.trim();
-  if (!text && url) {
+$("importPlaylist").addEventListener("click",async()=>{
+  const status=$("importStatus");
+  status.hidden=false;
+  let text=$("playlistText").value.trim();
+  const url=$("playlistUrl").value.trim();
+  if(!text && url) {
+    try { new URL(url); }
+    catch { status.textContent=tr("badUrl"); return; }
+    status.textContent=tr("urlLoad");
     try {
-      new URL(url);
+      const response=await fetch(url);
+      if(!response.ok) throw new Error("Request failed");
+      text=await response.text();
     } catch {
-      status.textContent = t("badUrl");
-      return;
-    }
-    status.textContent = t("urlLoad");
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      text = await response.text();
-    } catch {
-      status.textContent = t("importError");
-      return;
+      status.textContent=tr("importError"); return;
     }
   }
-  const parsed = parseM3U(text);
-  if (!parsed.length) {
-    status.textContent = t("emptyPlaylist");
-    return;
+  const parsed=parseM3U(text);
+  if(!parsed.length) {
+    status.textContent=tr("emptyPlaylist"); return;
   }
-  channels = parsed;
+  channels=parsed;
   favorites.clear();
   saveData();
-  renderChannels();
-  status.textContent = `${t("imported")} ${channels.length} ${t("channels")}`;
-  $("playlistText").value = "";
+  renderAll();
+  status.textContent=tr("imported")+" "+channels.length+" "+tr("channels");
+  $("playlistText").value="";
   showPage("live");
 });
-$("clearChannels").addEventListener("click", () => {
-  channels = [];
-  favorites.clear();
-  saveData();
-  renderChannels();
-  const status = $("importStatus");
-  status.hidden = false;
-  status.textContent = t("cleared");
-  $("videoPlayer").classList.remove("visible");
+$("clearChannels").addEventListener("click",()=>{
+  channels=[]; favorites.clear(); saveData(); renderAll();
+  $("importStatus").hidden=false;
+  $("importStatus").textContent=tr("cleared");
   $("video").pause();
   $("video").removeAttribute("src");
+  $("videoPlayer").classList.remove("visible");
 });
-$("loadDemo").addEventListener("click", () => {
-  channels = [
+$("loadDemo").addEventListener("click",()=>{
+  channels=[
     {id:"demo1",name:"Nova Demo One",group:"Demo",url:""},
     {id:"demo2",name:"Nova Demo Two",group:"Demo",url:""},
     {id:"demo3",name:"Nova Sports Demo",group:"Sports",url:""}
   ];
-  favorites.clear();
-  saveData();
-  renderChannels();
-  const status = $("importStatus");
-  status.hidden = false;
-  status.textContent = t("demoLoaded");
+  favorites.clear(); saveData(); renderAll();
+  $("importStatus").hidden=false;
+  $("importStatus").textContent=tr("demoLoaded");
 });
-$("homeSearch").addEventListener("input", renderChannels);
-$("liveSearch").addEventListener("input", renderChannels);
+$("homeSearch").addEventListener("input",renderAll);
+$("liveSearch").addEventListener("input",renderAll);
 
 function playChannel(id) {
-  const channel = channels.find(c => c.id === id);
-  if (!channel) return;
-  const message = $("playerMessage");
-  const player = $("videoPlayer");
-  const video = $("video");
-  message.hidden = true;
-  if (!channel.url) {
+  const c=channels.find(x=>x.id===id);
+  if(!c) return;
+  const msg=$("playerMessage");
+  const player=$("videoPlayer");
+  const video=$("video");
+  msg.hidden=true;
+  if(!c.url) {
     player.classList.remove("visible");
-    message.hidden = false;
-    message.textContent = t("noStream");
+    msg.hidden=false;
+    msg.textContent=tr("noStream");
     return;
   }
   player.classList.add("visible");
-  video.src = channel.url;
-  video.play().catch(() => {
-    message.hidden = false;
-    message.textContent = t("playerError");
+  video.src=c.url;
+  video.play().catch(()=>{
+    msg.hidden=false;
+    msg.textContent=tr("playerError");
   });
   player.scrollIntoView({behavior:"smooth",block:"center"});
 }
-
 loadData();
 applyTheme();
 applyLanguage();
