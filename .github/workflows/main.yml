@@ -14,8 +14,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -31,19 +32,19 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
 
-      - name: Extract Nova TV project
+      - name: Install Android packages
+        run: |
+          sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extract project
         run: |
           unzip -q NovaTV-Android-Studio.zip -d project
           find project -name build.gradle.kts
           test -f project/NovaTV-Android-Studio/app/build.gradle.kts
 
-      - name: Build debug APK
+      - name: Build APK
         working-directory: project/NovaTV-Android-Studio
         run: gradle assembleDebug --no-daemon
 
