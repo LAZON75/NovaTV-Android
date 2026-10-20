@@ -3,28 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieBoxTV</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>MovieBoxTV - Ultimate Streaming Experience</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- HLS & 3D Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
         :root {
-            --bg-main: #0a0d14;
-            --bg-card: #121824;
-            --primary-blue: #2563eb;
-            --primary-light: #3b82f6;
+            --bg-main: #07090e;
+            --bg-card: rgba(18, 24, 38, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --primary-blue: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.4);
+            --accent-red: #ef4444;
             --pill-active: #ffffff;
             --text-main: #ffffff;
             --text-sub: #94a3b8;
-            --accent-green: #22c55e;
-            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-subtle: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="neon"] {
+            --primary-blue: #ff007f;
+            --primary-glow: rgba(255, 0, 127, 0.4);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Tajawal', sans-serif;
             user-select: none;
             outline: none;
         }
@@ -37,35 +47,47 @@
             padding-bottom: 40px;
         }
 
+        /* 3D Background Canvas */
+        #webgl-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
         /* Top Bar Navigation */
         .top-navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 40px;
-            background: rgba(10, 13, 20, 0.95);
+            padding: 18px 40px;
+            background: rgba(7, 9, 14, 0.85);
+            backdrop-filter: blur(20px);
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .brand-logo {
             font-size: 22px;
             font-weight: 800;
-            color: #38bdf8;
+            color: var(--primary-blue);
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .brand-logo i {
-            color: #0284c7;
+            cursor: pointer;
         }
 
         .nav-center {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            background: var(--bg-glass);
+            padding: 5px;
+            border-radius: 30px;
+            border: 1px solid var(--border-subtle);
         }
 
         .nav-pill {
@@ -74,7 +96,7 @@
             color: var(--text-sub);
             padding: 8px 18px;
             border-radius: 20px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -84,20 +106,20 @@
             background: var(--pill-active);
             color: #0f172a;
             font-weight: 700;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
 
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
 
         .icon-btn {
-            background: #1e293b;
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
             color: #fff;
-            width: 42px;
-            height: 42px;
+            width: 42px; height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -109,467 +131,473 @@
 
         .icon-btn:hover, .icon-btn:focus {
             background: var(--primary-blue);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* Views Layout */
+        /* View Containers */
         .view-section {
             display: none;
-            padding: 10px 40px;
+            padding: 20px 40px;
+            animation: fadeIn 0.3s ease-in-out;
         }
 
         .view-section.active {
             display: block;
         }
 
-        /* Page d'accueil (Home) Hero Section */
-        .hero-layout {
-            display: grid;
-            grid-template-columns: 340px 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-            align-items: center;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .poster-card {
-            width: 100%;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            border: 1px solid var(--border-subtle);
-            position: relative;
-        }
-
-        .poster-card img {
-            width: 100%;
-            height: 480px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .movie-details {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .movie-title {
-            font-size: 38px;
+        /* Section Titles */
+        .section-header-title {
+            font-size: 26px;
             font-weight: 800;
-            line-height: 1.2;
-        }
-
-        .movie-meta {
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            color: var(--text-sub);
-            font-size: 15px;
-            font-weight: 600;
+            gap: 10px;
         }
 
-        .rating-badge {
-            color: #facc15;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        /* Grid Layouts for Movies/Series */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
 
-        .horizontal-row {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding-bottom: 15px;
+        .media-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
         }
 
-        .vertical-card {
-            min-width: 150px;
-            height: 220px;
-            border-radius: 14px;
+        .media-card:hover, .media-card:focus {
+            transform: translateY(-6px) scale(1.03);
+            border-color: var(--primary-blue);
+            box-shadow: 0 10px 25px var(--primary-glow);
+        }
+
+        .media-img-wrap {
+            width: 100%;
+            height: 250px;
             overflow: hidden;
             position: relative;
-            background: #1e293b;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid var(--border-subtle);
         }
 
-        .vertical-card:hover, .vertical-card:focus {
-            transform: scale(1.05);
-            border-color: var(--primary-light);
-        }
-
-        .vertical-card img {
+        .media-img-wrap img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .badge-lang {
+        .badge-rating {
             position: absolute;
-            top: 8px;
-            left: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            font-size: 11px;
+            top: 10px; right: 10px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #facc15;
+            font-size: 12px;
             font-weight: 700;
             padding: 3px 8px;
-            border-radius: 6px;
-            backdrop-filter: blur(4px);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
         }
 
-        /* Continue Watching Section */
-        .section-subtitle {
-            font-size: 20px;
+        .media-body {
+            padding: 12px;
+        }
+
+        .media-title {
+            font-size: 14px;
             font-weight: 700;
-            margin-bottom: 15px;
-            margin-top: 25px;
-        }
-
-        .continue-card {
-            background: #131926;
-            border-radius: 16px;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            width: 320px;
-            border: 1px solid var(--border-subtle);
-        }
-
-        .continue-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #27354a;
-            border-radius: 2px;
-            margin-top: 8px;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-light);
+        .media-info {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 4px;
         }
 
-        /* Live TV View Section */
+        /* Live TV Specific Layout */
         .live-layout {
             display: grid;
-            grid-template-columns: 480px 1fr;
+            grid-template-columns: 460px 1fr;
             gap: 30px;
         }
 
         .player-preview-card {
-            background: #101522;
+            background: var(--bg-card);
             border-radius: 20px;
             overflow: hidden;
             border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 100px;
         }
 
         .video-box {
             position: relative;
-            width: 100%;
-            height: 270px;
+            width: 100%; height: 260px;
             background: #000;
         }
 
         .video-box video {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
         }
 
         .live-badge {
             position: absolute;
-            top: 12px;
-            left: 12px;
-            background: #ef4444;
+            top: 12px; left: 12px;
+            background: var(--accent-red);
             color: #fff;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 11px; font-weight: 800;
+            padding: 4px 10px; border-radius: 6px;
+            display: flex; align-items: center; gap: 6px;
         }
 
         .country-selector {
-            background: #1e293b;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        .channel-square-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .channel-square {
-            height: 110px;
-            background: #1a2234;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            cursor: pointer;
-            border: 1px solid var(--border-subtle);
-            transition: 0.2s;
-            text-align: center;
-        }
-
-        .channel-square:hover, .channel-square:focus {
-            border-color: var(--primary-light);
-            transform: scale(1.04);
-            background: #222d44;
-        }
-
-        .channel-square img {
-            max-width: 70%;
-            max-height: 50px;
-            object-fit: contain;
-            margin-bottom: 8px;
-        }
-
-        .channel-square span {
-            font-size: 12px;
-            font-weight: 700;
-            color: #e2e8f0;
-        }
-
-        .channel-row-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .channel-row-item {
-            background: #131a29;
-            padding: 12px 18px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            border: 1px solid var(--border-subtle);
-        }
-
-        .channel-row-item:hover, .channel-row-item:focus {
-            background: #1d273d;
-            border-color: var(--primary-light);
-        }
-
-        .time-header {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-sub);
-            text-align: right;
-            margin-bottom: 15px;
-        }
-
-        /* Match Horizontal Cards */
-        .match-row {
-            display: flex;
-            gap: 15px;
+            display: flex; gap: 10px;
             overflow-x: auto;
-            margin-top: 15px;
+            margin-bottom: 20px; padding-bottom: 5px;
         }
 
-        .match-card {
-            background: #1e293b;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            white-space: nowrap;
-            cursor: pointer;
+        .country-btn {
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 8px 18px; border-radius: 12px;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; white-space: nowrap;
+            transition: 0.2s;
         }
 
-        .match-card:hover, .match-card:focus {
+        .country-btn.active, .country-btn:hover {
             background: var(--primary-blue);
+            color: #000;
+        }
+
+        .channels-pro-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .channel-pro-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 15px;
+            display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: 0.25s;
+        }
+
+        .channel-pro-card:hover, .channel-pro-card:focus {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+        }
+
+        .channel-logo-box {
+            width: 45px; height: 45px;
+            border-radius: 10px; background: #1e293b;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+
+        /* Settings Modal Overlay */
+        .settings-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center; justify-content: center;
+        }
+
+        .settings-modal.active { display: flex; }
+
+        .settings-content {
+            background: #121824;
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%; max-width: 500px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .close-settings {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: transparent; border: none;
+            color: var(--text-sub); font-size: 20px;
+            cursor: pointer;
+        }
+
+        .settings-item { margin-bottom: 20px; }
+
+        .settings-item label {
+            display: block; font-size: 14px; font-weight: 700;
+            margin-bottom: 8px; color: var(--primary-blue);
+        }
+
+        .settings-item select, .settings-item input {
+            width: 100%; background: #1a2234;
+            border: 1px solid var(--border-subtle);
+            color: #fff; padding: 12px;
+            border-radius: 10px; font-size: 14px;
+        }
+
+        .btn-save-settings {
+            width: 100%; background: var(--primary-blue);
+            color: #000; border: none; padding: 12px;
+            border-radius: 12px; font-weight: 800;
+            font-size: 15px; cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .top-navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
+            .live-layout { grid-template-columns: 1fr; }
+            .view-section { padding: 15px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
+    <!-- Dynamic 3D Background Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Navigation Header -->
     <nav class="top-navbar">
-        <div class="brand-logo">
+        <div class="brand-logo" onclick="switchView('homeView')">
             <i class="fa-solid fa-play"></i> MovieBoxTV
         </div>
 
         <div class="nav-center">
-            <button class="icon-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
             <button class="nav-pill active" onclick="switchView('homeView')">page d'accueil</button>
-            <button class="nav-pill" onclick="switchView('homeView')">Films</button>
-            <button class="nav-pill" onclick="switchView('homeView')">Séries TV</button>
-            <button class="nav-pill" onclick="switchView('homeView')">Animés</button>
-            <button class="nav-pill" onclick="switchView('homeView')">Enfants</button>
+            <button class="nav-pill" onclick="switchView('moviesView')">Films</button>
+            <button class="nav-pill" onclick="switchView('seriesView')">Séries TV</button>
+            <button class="nav-pill" onclick="switchView('animesView')">Animés</button>
             <button class="nav-pill" onclick="switchView('liveView')">TV en direct</button>
         </div>
 
         <div class="nav-right">
-            <button class="icon-btn"><i class="fa-solid fa-bookmark"></i></button>
-            <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+            <button class="icon-btn" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
         </div>
     </nav>
 
-    <!-- PAGE D'ACCUEIL (HOME VIEW) -->
+    <!-- SECTION 1: PAGE D'ACCUEIL (HOME) -->
     <div id="homeView" class="view-section active">
-        <div class="hero-layout">
-            <div class="poster-card">
-                <img src="https://images.unsplash.com/photo-1635805737707-575885ab0820?q=80&w=600&auto=format&fit=crop" alt="Spider-Man">
-            </div>
-
-            <div class="movie-details">
-                <h1 class="movie-title">Spider-Man: Brand New Day [Version française]</h1>
-                <div class="movie-meta">
-                    <span class="rating-badge"><i class="fa-solid fa-star"></i> 8.0</span>
-                    <span>2026</span>
-                    <span>Action, Adventure, Fantasy</span>
-                </div>
-
-                <div class="horizontal-row">
-                    <div class="vertical-card" onclick="playLive('https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8')">
-                        <span class="badge-lang">En français</span>
-                        <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop" alt="Movie">
-                    </div>
-                    <div class="vertical-card" onclick="playLive('https://live-hls-web-aje.getaj.net/AJE/03.m3u8')">
-                        <span class="badge-lang">En français</span>
-                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop" alt="Movie">
-                    </div>
-                    <div class="vertical-card" onclick="playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8')">
-                        <span class="badge-lang">En français</span>
-                        <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" alt="Movie">
-                    </div>
-                    <div class="vertical-card" onclick="playLive('https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8')">
-                        <span class="badge-lang">En français</span>
-                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" alt="Movie">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-subtitle">Continuer à regarder</div>
-        <div class="continue-card">
-            <div class="continue-icon"><i class="fa-solid fa-clock"></i></div>
-            <div style="flex:1;">
-                <div style="font-weight:800; font-size:15px;">Peaky Blinders: L'immortel</div>
-                <div style="color:var(--text-sub); font-size:12px; margin-top:2px;">11% visionné</div>
-                <div class="progress-bar"><div class="progress-fill" style="width:11%;"></div></div>
-            </div>
-        </div>
-
-        <div class="section-subtitle">Football en direct --- Mettez à jour vers v1.1.10+ pour regarder.</div>
-        <div class="match-row">
-            <div class="match-card">Fourth Qualifying Round</div>
-            <div class="match-card">Champions League Round 3</div>
-            <div class="match-card">Champions League Round 3</div>
-        </div>
+        <div class="section-header-title"><i class="fa-solid fa-house" style="color:var(--primary-blue);"></i> Accueil</div>
+        <div class="media-grid" id="homeGrid"></div>
     </div>
 
-    <!-- TV EN DIRECT (LIVE VIEW) -->
+    <!-- SECTION 2: FILMS (MOVIES LIBRARY) -->
+    <div id="moviesView" class="view-section">
+        <div class="section-header-title"><i class="fa-solid fa-film" style="color:var(--primary-blue);"></i> Bibliothèque de Films</div>
+        <div class="media-grid" id="moviesGrid"></div>
+    </div>
+
+    <!-- SECTION 3: SÉRIES TV -->
+    <div id="seriesView" class="view-section">
+        <div class="section-header-title"><i class="fa-solid fa-tv" style="color:var(--primary-blue);"></i> Séries & Saisons</div>
+        <div class="media-grid" id="seriesGrid"></div>
+    </div>
+
+    <!-- SECTION 4: ANIMÉS & ENFANTS -->
+    <div id="animesView" class="view-section">
+        <div class="section-header-title"><i class="fa-solid fa-child" style="color:var(--primary-blue);"></i> Animés & Enfants</div>
+        <div class="media-grid" id="animesGrid"></div>
+    </div>
+
+    <!-- SECTION 5: TV EN DIRECT (LIVE IPTV CHANNELS) -->
     <div id="liveView" class="view-section">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <button class="country-selector">
-                🇫🇷 France ⇆
-            </button>
-            <div class="time-header" id="localClock">Local time: 11:48 PM</div>
+        <div class="country-selector">
+            <button class="country-btn active" onclick="filterCountry('all')">🌍 Toutes les chaînes</button>
+            <button class="country-btn" onclick="filterCountry('fr')">🇫🇷 France</button>
+            <button class="country-btn" onclick="filterCountry('ar')">🇸🇦 Arabes</button>
         </div>
 
         <div class="live-layout">
-            <!-- Left Side Video Preview Card -->
+            <!-- Left Side Video Player Preview -->
             <div class="player-preview-card">
                 <div class="video-box">
-                    <span class="live-badge"><i class="fa-solid fa-circle"></i> Live</span>
+                    <span class="live-badge"><i class="fa-solid fa-circle"></i> LIVE</span>
                     <video id="livePlayer" controls autoplay></video>
                 </div>
                 <div style="padding: 20px;">
-                    <h2 id="currentChannelName" style="font-size:24px; font-weight:800;">Frequence Novelas</h2>
-                    <p style="color:var(--text-sub); font-size:14px; margin-top:4px;">France · fra</p>
+                    <h2 id="currentChannelName" style="font-size:22px; font-weight:800;">قناة القرآن الكريم</h2>
+                    <p id="currentChannelSub" style="color:var(--text-sub); font-size:13px; margin-top:4px;">البث المباشر · 4K Ultra HD</p>
                 </div>
             </div>
 
-            <!-- Right Side Grid & List -->
+            <!-- Right Side Channels Organized Grid -->
             <div>
-                <div class="channel-square-grid">
-                    <div class="channel-square" onclick="playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8', 'Frequence Novelas')">
-                        <span style="color:#ff4757; font-weight:900; font-size:16px;">Fréquence Novelas</span>
-                        <span>Frequence Nove...</span>
-                    </div>
-                    <div class="channel-square" onclick="playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8', 'BFM TV')">
-                        <span style="color:#2ed573; font-weight:900; font-size:20px;">BFM TV</span>
-                        <span>bfm tv</span>
-                    </div>
-                    <div class="channel-square" onclick="playLive('https://live-hls-web-aje.getaj.net/AJE/03.m3u8', 'WASABI')">
-                        <span style="color:#1e90ff; font-weight:900; font-size:16px;">WASABI</span>
-                        <span>Wasabi la c...</span>
-                    </div>
-                    <div class="channel-square" onclick="playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8', 'FRANCE 24')">
-                        <span style="color:#00d2d3; font-weight:900; font-size:18px;">FRANCE 24</span>
-                        <span>France 24 F...</span>
-                    </div>
-                </div>
-
-                <div style="font-size:18px; font-weight:800; margin-bottom:15px;">All Channels</div>
-
-                <div class="channel-row-list">
-                    <div class="channel-row-item" onclick="playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8', '20 Minutes TV')">
-                        <span>🇫🇷 20 Minutes TV</span>
-                        <i class="fa-solid fa-signal" style="color:var(--primary-light);"></i>
-                    </div>
-                    <div class="channel-row-item" onclick="playLive('https://live-hls-web-aje.getaj.net/AJE/03.m3u8', 'Africa 24')">
-                        <span>🇫🇷 Africa 24</span>
-                        <i class="fa-solid fa-signal" style="color:var(--primary-light);"></i>
-                    </div>
-                    <div class="channel-row-item" onclick="playLive('https://live-hls-web-aje.getaj.net/AJE/03.m3u8', 'Africa 24 English')">
-                        <span>🇫🇷 Africa 24 English</span>
-                        <i class="fa-solid fa-signal" style="color:var(--primary-light);"></i>
-                    </div>
-                    <div class="channel-row-item" onclick="playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8', 'Africa 24 Sport')">
-                        <span>🇫🇷 Africa 24 Sport</span>
-                        <i class="fa-solid fa-signal" style="color:var(--primary-light);"></i>
-                    </div>
-                </div>
+                <div class="channels-pro-grid" id="channelsContainer"></div>
             </div>
         </div>
     </div>
 
+    <!-- SETTINGS MODAL -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="font-size: 22px; margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--primary-blue);"></i> Paramètres النظام</h2>
+
+            <div class="settings-item">
+                <label>Langue / اللغة</label>
+                <select id="langSelect">
+                    <option value="fr">Français</option>
+                    <option value="ar">العربية</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+
+            <div class="settings-item">
+                <label>Thème / المظهر</label>
+                <select id="themeSelect" onchange="applyTheme(this.value)">
+                    <option value="dark">Dark Luxury (الليل الفخم)</option>
+                    <option value="neon">Neon Glow (النيون المضيء)</option>
+                </select>
+            </div>
+
+            <div class="settings-item">
+                <label>Lien قائمة M3U الخارجية</label>
+                <input type="text" placeholder="https://example.com/playlist.m3u">
+            </div>
+
+            <button class="btn-save-settings" onclick="saveSettings()">Enregistrer / حفظ الإعدادات</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Engine -->
     <script>
+        // Data Sources
+        const channelsData = [
+            { name: "قناة القرآن الكريم", flag: "🇸🇦", lang: "ar", sub: "مكة المكرمة", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8" },
+            { name: "قناة السنة النبوية", flag: "🇸🇦", lang: "ar", sub: "المدينة المنورة", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8" },
+            { name: "France 24 Arabe", flag: "🇫🇷", lang: "fr", sub: "France · Actualités", url: "https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8" },
+            { name: "Al Jazeera English", flag: "🇶🇦", lang: "ar", sub: "Qatar · News 24/7", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8" },
+            { name: "Sky News Arabia", flag: "🇦🇪", lang: "ar", sub: "UAE · Actualités", url: "https://skynewsarabia.live.net.ae/hls/live/2026131/snaharabic/index.m3u8" }
+        ];
+
+        const moviesData = [
+            { title: "Spider-Man: Brand New Day", rating: "8.0", year: "2026", img: "https://images.unsplash.com/photo-1635805737707-575885ab0820?q=80&w=400&auto=format&fit=crop" },
+            { title: "Inception 4K", rating: "8.8", year: "2010", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop" },
+            { title: "Interstellar", rating: "8.7", year: "2014", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop" },
+            { title: "Avatar: The Way of Water", rating: "7.9", year: "2022", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop" }
+        ];
+
+        const seriesData = [
+            { title: "Peaky Blinders", rating: "8.8", year: "Saison 6", img: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=400&auto=format&fit=crop" },
+            { title: "Breaking Bad", rating: "9.5", year: "Saison 5", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            init3DBackground();
+            renderMediaGrid('homeGrid', [...moviesData, ...seriesData]);
+            renderMediaGrid('moviesGrid', moviesData);
+            renderMediaGrid('seriesGrid', seriesData);
+            renderMediaGrid('animesGrid', moviesData);
+            renderChannels(channelsData);
+            playLive(channelsData[0].url, channelsData[0].name);
+        });
+
+        /* 3D Interactive Canvas Particles Background */
+        function init3DBackground() {
+            const canvas = document.getElementById('webgl-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const count = 700;
+            const positions = new Float32Array(count * 3);
+
+            for(let i = 0; i < count * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 15;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.035, color: 0x38bdf8 });
+            const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particleSystem);
+
+            camera.position.z = 3;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                particleSystem.rotation.y += 0.0008;
+                particleSystem.rotation.x += 0.0004;
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        /* Render Cards */
+        function renderMediaGrid(elementId, data) {
+            const grid = document.getElementById(elementId);
+            grid.innerHTML = '';
+            data.forEach(item => {
+                grid.innerHTML += `
+                    <div class="media-card" onclick="alert('Lancement de ${item.title}')">
+                        <div class="media-img-wrap">
+                            <span class="badge-rating"><i class="fa-solid fa-star"></i> ${item.rating}</span>
+                            <img src="${item.img}" alt="${item.title}">
+                        </div>
+                        <div class="media-body">
+                            <div class="media-title">${item.title}</div>
+                            <div class="media-info">${item.year}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderChannels(data) {
+            const container = document.getElementById('channelsContainer');
+            container.innerHTML = '';
+            data.forEach(ch => {
+                container.innerHTML += `
+                    <div class="channel-pro-card" onclick="playLive('${ch.url}', '${ch.name}')">
+                        <div class="channel-logo-box">${ch.flag}</div>
+                        <div>
+                            <div style="font-size:14px; font-weight:700;">${ch.name}</div>
+                            <div style="font-size:12px; color:var(--text-sub);">${ch.sub}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCountry(lang) {
+            document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            if(lang === 'all') renderChannels(channelsData);
+            else renderChannels(channelsData.filter(c => c.lang === lang));
+        }
+
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-pill').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             event.currentTarget.classList.add('active');
         }
 
         let hls = null;
-        function playLive(url, name = "Chaîne en direct") {
+        function playLive(url, name) {
             const video = document.getElementById('livePlayer');
             document.getElementById('currentChannelName').innerText = name;
 
@@ -585,24 +613,10 @@
             }
         }
 
-        // Live Clock Update
-        function updateClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            let minutes = now.getMinutes();
-            let ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            document.getElementById('localClock').innerText = 'Local time: ' + hours + ':' + minutes + ' ' + ampm;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Autoplay default stream
-        window.onload = () => {
-            playLive('https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8', 'Frequence Novelas');
-        };
+        function openSettings() { document.getElementById('settingsModal').classList.add('active'); }
+        function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+        function applyTheme(theme) { document.documentElement.setAttribute('data-theme', theme); }
+        function saveSettings() { alert('تم حفظ الإعدادات بنجاح!'); closeSettings(); }
     </script>
 </body>
 </html>
