@@ -1,283 +1,647 @@
+```html
 <!DOCTYPE html>
 <html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamVibe PRO - NextGen IPTV Experience</title>
-    <!-- Fonts & Icons -->
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#05070f',
+                            card: 'rgba(15, 23, 42, 0.75)',
+                            border: 'rgba(255, 255, 255, 0.1)',
+                            accent: '#00d2ff',
+                            crimson: '#c01248',
+                            crimsonHover: '#d91b54',
+                            glow: 'rgba(0, 210, 255, 0.4)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Tajawal', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & Font Awesome Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Streaming & 3D Libraries -->
+
+    <!-- Libraries: HLS Player & Three.js Canvas -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
-        :root {
-            --bg-main: #06080e;
-            --bg-card: rgba(18, 24, 38, 0.85);
-            --bg-glass: rgba(255, 255, 255, 0.05);
-            --primary-blue: #00d2ff;
-            --primary-glow: rgba(0, 210, 255, 0.5);
-            --btn-settings: #c01248;
-            --pill-active: #ffffff;
-            --text-main: #ffffff;
-            --text-sub: #94a3b8;
-            --border-subtle: rgba(255, 255, 255, 0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', 'Tajawal', sans-serif;
-            user-select: none;
-            outline: none;
-        }
-
+        /* CSS Safe Fallback & Custom Styling */
         body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            min-height: 100vh;
+            background-color: #05070f;
+            color: #ffffff;
+            font-family: 'Inter', 'Tajawal', sans-serif;
             overflow-x: hidden;
-            padding-bottom: 40px;
+            min-height: 100vh;
         }
 
-        /* 3D Canvas Background */
+        /* Ambient Glow Background Fallback */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 20% 20%, rgba(0, 210, 255, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(192, 18, 72, 0.08) 0%, transparent 40%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* 3D WebGL Canvas Layer */
         #webgl-canvas {
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: -1;
             pointer-events: none;
         }
 
-        /* Top Navigation Header */
-        .top-navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 40px;
-            background: rgba(6, 8, 14, 0.95);
-            backdrop-filter: blur(20px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .brand-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-        }
-
-        .brand-logo-3d {
-            font-size: 24px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #00d2ff, #3a7bd5, #ff0055);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0, 210, 255, 0.6);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-badge {
-            background: linear-gradient(135deg, #ff0055, #ff5050);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 6px;
-        }
-
-        .server-status-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #10b981;
-        }
-
-        .green-dot {
-            width: 9px; height: 9px;
-            background-color: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #10b981;
-            animation: pulse-green 1.5s infinite;
-        }
-
+        /* Pulsing Online Badge */
         @keyframes pulse-green {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
-
-        .nav-center {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-glass);
-            padding: 5px;
-            border-radius: 30px;
-            border: 1px solid var(--border-subtle);
+        .green-pulse {
+            animation: pulse-green 2s infinite;
         }
 
-        .nav-pill {
-            background: transparent;
-            border: none;
-            color: var(--text-sub);
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .nav-pill.active, .nav-pill:hover {
-            background: var(--pill-active);
-            color: #0f172a;
-            font-weight: 700;
+        .glass-nav {
+            background: rgba(5, 7, 15, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .icon-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: #fff;
-            width: 42px; height: 42px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; cursor: pointer;
-            transition: 0.2s;
+        /* Card Hover Animations */
+        .hover-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hover-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: #00d2ff;
+            box-shadow: 0 15px 30px rgba(0, 210, 255, 0.25);
         }
 
-        .icon-btn:hover {
-            background: var(--primary-blue);
-            color: #000;
+        /* Settings Modal Custom Animation */
+        .modal-overlay {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .modal-box {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.9) translateY(20px);
+        }
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
         }
 
-        /* Views */
-        .view-section {
-            display: none;
-            padding: 25px 40px;
+        /* Toast Popup Notification */
+        #toast {
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateY(100px);
+            opacity: 0;
+        }
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- Ambient CSS Gradient Layer (Ensures layout NEVER shows pure black screen) -->
+    <div class="ambient-bg"></div>
+
+    <!-- 3D Three.js Canvas Layer -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app" class="relative z-10 flex flex-col min-h-screen">
+
+        <!-- TOP NAVIGATION BAR -->
+        <header class="sticky top-0 z-50 glass-nav px-4 lg:px-8 py-4">
+            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+                
+                <!-- Brand Logo & Status Indicator -->
+                <div class="flex items-center gap-4 cursor-pointer" onclick="switchNavTab('homeView')">
+                    <div class="flex items-center gap-2.5 text-2xl lg:text-3xl font-black tracking-tight">
+                        <i class="fa-solid fa-circle-play text-cyan-400 drop-shadow-[0_0_12px_rgba(0,210,255,0.8)]"></i>
+                        <span class="bg-gradient-to-r from-cyan-400 via-blue-500 to-pink-500 bg-clip-text text-transparent">
+                            StreamVibe
+                        </span>
+                        <span class="bg-gradient-to-r from-pink-600 to-red-500 text-white text-xs font-black px-2 py-0.5 rounded-md shadow-md uppercase">PRO</span>
+                    </div>
+
+                    <!-- Pulsing Green Server Dot -->
+                    <div class="hidden sm:flex items-center gap-2 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full">
+                        <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full green-pulse"></span>
+                        <span class="text-xs font-bold text-emerald-400 tracking-wider">SERVER ONLINE</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs Menu -->
+                <nav class="flex items-center gap-1 sm:gap-2 bg-slate-900/80 p-1.5 rounded-full border border-white/10 overflow-x-auto max-w-full">
+                    <button id="btn-homeView" onclick="switchNavTab('homeView')" class="nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all bg-white text-slate-950 shadow-md">
+                        <i class="fa-solid fa-house mr-1.5"></i>page d'accueil
+                    </button>
+                    <button id="btn-moviesView" onclick="switchNavTab('moviesView')" class="nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-film mr-1.5"></i>Films
+                    </button>
+                    <button id="btn-seriesView" onclick="switchNavTab('seriesView')" class="nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-tv mr-1.5"></i>Séries TV
+                    </button>
+                    <button id="btn-animesView" onclick="switchNavTab('animesView')" class="nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-masks-theater mr-1.5"></i>Animés
+                    </button>
+                    <button id="btn-liveView" onclick="switchNavTab('liveView')" class="nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-satellite-dish mr-1.5"></i>TV en direct
+                    </button>
+                </nav>
+
+                <!-- Settings Gear Trigger Button -->
+                <button onclick="toggleModal(true)" title="Paramètres" class="w-11 h-11 rounded-full glass-card flex items-center justify-center text-white hover:text-cyan-400 hover:border-cyan-400/50 transition-all shadow-lg active:scale-95">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTAINER -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-8">
+
+            <!-- PAGE D'ACCUEIL (HOME VIEW) -->
+            <section id="homeView" class="view-panel space-y-8">
+                <!-- HERO BANNER -->
+                <div class="relative w-full rounded-3xl overflow-hidden glass-card border border-white/10 p-6 md:p-12 min-h-[280px] md:min-h-[340px] flex flex-col justify-end bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent">
+                    <div class="absolute inset-0 -z-10 opacity-30 bg-[radial-gradient(#00d2ff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                    <div class="space-y-3 max-w-2xl">
+                        <span class="inline-block bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+                            <i class="fa-solid fa-sparkles mr-1"></i> IPTV NextGen Unlimited
+                        </span>
+                        <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                            StreamVibe <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">PRO</span>
+                        </h1>
+                        <p class="text-slate-300 text-sm md:text-base font-normal leading-relaxed">
+                            Accédez instantanément à vos chaînes télévisées en direct, films blockbuster, séries exclusives et animés HD avec un lecteur fluide à ultra-basse latence.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4 LARGE INTERACTIVE CATEGORY CARDS -->
+                <div>
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-border-all text-cyan-400"></i> Catégories Principales
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        
+                        <!-- Card 1: Films -->
+                        <div onclick="switchNavTab('moviesView')" class="hover-card cursor-pointer rounded-2xl glass-card p-6 h-52 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-slate-900/80 to-rose-950/30">
+                            <div class="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:bg-rose-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-film text-2xl"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-rose-400 tracking-widest uppercase">Bibliothèque</span>
+                                <h3 class="text-2xl font-black text-white mt-1">Films</h3>
+                                <p class="text-xs text-slate-400 mt-1">10,000+ Titres 4K HDR</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right absolute bottom-6 right-6 text-slate-500 group-hover:text-rose-400 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+
+                        <!-- Card 2: Séries TV -->
+                        <div onclick="switchNavTab('seriesView')" class="hover-card cursor-pointer rounded-2xl glass-card p-6 h-52 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-slate-900/80 to-indigo-950/30">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-tv text-2xl"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-indigo-400 tracking-widest uppercase">Épisodes</span>
+                                <h3 class="text-2xl font-black text-white mt-1">Séries TV</h3>
+                                <p class="text-xs text-slate-400 mt-1">Saisons complètes VF/VOSTFR</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right absolute bottom-6 right-6 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+
+                        <!-- Card 3: TV en Direct -->
+                        <div onclick="switchNavTab('liveView')" class="hover-card cursor-pointer rounded-2xl glass-card p-6 h-52 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-slate-900/80 to-cyan-950/30">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-satellite-dish text-2xl"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-cyan-400 tracking-widest uppercase">Direct HD</span>
+                                <h3 class="text-2xl font-black text-white mt-1">TV en direct</h3>
+                                <p class="text-xs text-slate-400 mt-1">Chaînes mondiales & Sport</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right absolute bottom-6 right-6 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+
+                        <!-- Card 4: Animés -->
+                        <div onclick="switchNavTab('animesView')" class="hover-card cursor-pointer rounded-2xl glass-card p-6 h-52 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-slate-900/80 to-emerald-950/30">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                <i class="fa-solid fa-masks-theater text-2xl"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-emerald-400 tracking-widest uppercase">Animation</span>
+                                <h3 class="text-2xl font-black text-white mt-1">Animés</h3>
+                                <p class="text-xs text-slate-400 mt-1">Mangas & Animation HD</p>
+                            </div>
+                            <i class="fa-solid fa-arrow-right absolute bottom-6 right-6 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- FILMS VIEW -->
+            <section id="moviesView" class="view-panel hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <i class="fa-solid fa-film text-rose-500"></i> Catalogue des Films
+                    </h2>
+                    <span class="text-xs text-slate-400">Total: 4 Films</span>
+                </div>
+                <div id="moviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+            </section>
+
+            <!-- SÉRIES VIEW -->
+            <section id="seriesView" class="view-panel hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <i class="fa-solid fa-tv text-indigo-500"></i> Séries & Saisons
+                    </h2>
+                    <span class="text-xs text-slate-400">Total: 4 Séries</span>
+                </div>
+                <div id="seriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+            </section>
+
+            <!-- ANIMÉS VIEW -->
+            <section id="animesView" class="view-panel hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <i class="fa-solid fa-masks-theater text-emerald-500"></i> Animés & Japanimation
+                    </h2>
+                    <span class="text-xs text-slate-400">Total: 4 Animés</span>
+                </div>
+                <div id="animesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+            </section>
+
+            <!-- TV EN DIRECT VIEW -->
+            <section id="liveView" class="view-panel hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- HLS Video Player Card (Preview) -->
+                    <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+                        <div class="glass-card rounded-2xl overflow-hidden p-3 border border-white/10 shadow-2xl">
+                            <div class="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+                                <video id="hlsPlayer" controls autoplay class="w-full h-full object-contain"></video>
+                            </div>
+                            <div class="p-4 flex items-center justify-between">
+                                <div>
+                                    <h3 id="currentChannelTitle" class="text-xl font-bold text-white">قناة القرآن الكريم</h3>
+                                    <p class="text-xs text-slate-400 mt-1 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Stream Direct HLS • Ultra HD 1080p
+                                    </p>
+                                </div>
+                                <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">
+                                    LIVE
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Channel List Grid -->
+                    <div class="lg:col-span-5 xl:col-span-4 space-y-3">
+                        <h3 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-list-ul text-cyan-400"></i> Liste des Chaînes
+                        </h3>
+                        <div id="channelsContainer" class="space-y-2 max-h-[480px] overflow-y-auto pr-1"></div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- SETTINGS OVERLAY MODAL (PARAMÈTRES) -->
+    <div id="settingsModal" class="modal-overlay fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="modal-box w-full max-w-md glass-card rounded-3xl p-6 sm:p-8 border border-white/15 bg-slate-950/90 shadow-2xl space-y-6">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-500">
+                        <i class="fa-solid fa-gear text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-white tracking-tight">Paramètres</h2>
+                </div>
+                <button onclick="toggleModal(false)" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- 6 Large Crimson Action Buttons -->
+            <div class="space-y-3">
+                
+                <!-- 1. Ajouter une liste M3U -->
+                <button onclick="triggerAction('Ajouter une liste M3U')" class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-brand-crimson to-rose-700 hover:from-rose-600 hover:to-brand-crimson text-white font-bold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-rose-950/50 hover:shadow-rose-600/30 transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-link text-lg"></i>
+                        <span>Ajouter une liste M3U</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                </button>
+
+                <!-- 2. Contrôle parental -->
+                <button onclick="triggerAction('Contrôle parental')" class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-brand-crimson to-rose-700 hover:from-rose-600 hover:to-brand-crimson text-white font-bold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-rose-950/50 hover:shadow-rose-600/30 transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-lock text-lg"></i>
+                        <span>Contrôle parental</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                </button>
+
+                <!-- 3. Langue -->
+                <button onclick="triggerAction('Langue')" class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-brand-crimson to-rose-700 hover:from-rose-600 hover:to-brand-crimson text-white font-bold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-rose-950/50 hover:shadow-rose-600/30 transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-globe text-lg"></i>
+                        <span>Langue</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                </button>
+
+                <!-- 4. Thème -->
+                <button onclick="triggerAction('Thème')" class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-brand-crimson to-rose-700 hover:from-rose-600 hover:to-brand-crimson text-white font-bold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-rose-950/50 hover:shadow-rose-600/30 transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-palette text-lg"></i>
+                        <span>Thème</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                </button>
+
+                <!-- 5. Lecteur externe -->
+                <button onclick="triggerAction('Lecteur externe')" class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-brand-crimson to-rose-700 hover:from-rose-600 hover:to-brand-crimson text-white font-bold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-rose-950/50 hover:shadow-rose-600/30 transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-circle-play text-lg"></i>
+                        <span>Lecteur externe</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                </button>
+
+                <!-- 6. Effacer l'historique -->
+                <button onclick="triggerAction('Effacer l\'historique')" class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-brand-crimson to-rose-700 hover:from-rose-600 hover:to-brand-crimson text-white font-bold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-rose-950/50 hover:shadow-rose-600/30 transition-all active:scale-[0.98]">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-trash-can text-lg"></i>
+                        <span>Effacer l'historique</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed bottom-6 right-6 z-[200] glass-card bg-slate-900/95 border-cyan-500/50 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-semibold">Action exécutée avec succès</span>
+    </div>
+
+    <!-- APPLICATION JAVASCRIPT LOGIC -->
+    <script>
+        // Mock Catalog Data
+        const movies = [
+            { id: 1, title: 'Inception 4K', desc: 'Sci-Fi • 2h 28m', color: 'from-blue-600 to-indigo-900' },
+            { id: 2, title: 'Interstellar', desc: 'Adventure • 2h 49m', color: 'from-purple-600 to-slate-900' },
+            { id: 3, title: 'The Dark Knight', desc: 'Action • 2h 32m', color: 'from-zinc-700 to-black' },
+            { id: 4, title: 'Avatar 2', desc: 'Fantasy • 3h 12m', color: 'from-cyan-600 to-blue-950' }
+        ];
+
+        const series = [
+            { id: 1, title: 'Peaky Blinders', desc: 'Saison 6 • 6 Épisodes', color: 'from-amber-700 to-slate-900' },
+            { id: 2, title: 'Breaking Bad', desc: 'Saison 5 • 16 Épisodes', color: 'from-emerald-700 to-slate-950' },
+            { id: 3, title: 'Stranger Things', desc: 'Saison 4 • 9 Épisodes', color: 'from-rose-800 to-black' },
+            { id: 4, title: 'The Mandalorian', desc: 'Saison 3 • 8 Épisodes', color: 'from-orange-600 to-stone-900' }
+        ];
+
+        const animes = [
+            { id: 1, title: 'Attack on Titan', desc: 'Saison Finale • HD', color: 'from-red-700 to-stone-900' },
+            { id: 2, title: 'Demon Slayer', desc: 'Arc Hashira • 4K', color: 'from-emerald-600 to-teal-950' },
+            { id: 3, title: 'Jujutsu Kaisen', desc: 'Saison 2 • VF', color: 'from-blue-700 to-slate-950' },
+            { id: 4, title: 'One Piece', desc: 'Arc Egghead • VOSTFR', color: 'from-amber-600 to-red-950' }
+        ];
+
+        const channels = [
+            { name: "قناة القرآن الكريم", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/makkah/hq/index.m3u8" },
+            { name: "قناة السنة النبوية", flag: "🇸🇦", url: "https://vs-hls-push-ww-live.cf.cdntv.africa/madinah/hq/index.m3u8" },
+            { name: "France 24 Arabe", flag: "🇫🇷", url: "https://f24hls-i.akamaihd.net/hls/live/221193/F24_AR_HLS/master.m3u8" },
+            { name: "Al Jazeera English", flag: "🇶🇦", url: "https://live-hls-web-aje.getaj.net/AJE/03.m3u8" }
+        ];
+
+        let hlsPlayer = null;
+
+        // Initialize UI Elements Safe Execution
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGrid('moviesGrid', movies);
+            renderGrid('seriesGrid', series);
+            renderGrid('animesGrid', animes);
+            renderChannelsList();
+            initHlsPlayer(channels[0].url, channels[0].name);
+            initThreeJsBackground();
+        });
+
+        // Tab Navigation Switcher
+        function switchNavTab(tabId) {
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.add('hidden'));
+            const activePanel = document.getElementById(tabId);
+            if (activePanel) activePanel.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = 'nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all';
+            });
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.className = 'nav-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all bg-white text-slate-950 shadow-md';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        .view-section.active { display: block; }
+        // Render Media Items Grids
+        function renderGrid(containerId, items) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
 
-        /* Cinema Banner Header */
-        .hero-banner-large {
-            position: relative;
-            width: 100%;
-            min-height: 260px;
-            border-radius: 24px;
-            overflow: hidden;
-            background: linear-gradient(180deg, rgba(6, 8, 14, 0.3) 0%, rgba(6, 8, 14, 0.95) 100%),
-                        url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1400&auto=format&fit=crop') center/cover no-repeat;
-            border: 1px solid var(--border-subtle);
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            margin-bottom: 35px;
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'hover-card cursor-pointer rounded-2xl glass-card overflow-hidden p-3 border border-white/10 group';
+                card.onclick = () => showToast(`Lecture de ${item.title}`);
+                card.innerHTML = `
+                    <div class="h-44 w-full rounded-xl bg-gradient-to-tr ${item.color} flex items-center justify-center relative overflow-hidden">
+                        <i class="fa-solid fa-circle-play text-4xl text-white/80 group-hover:scale-125 transition-transform"></i>
+                    </div>
+                    <div class="pt-3 px-1">
+                        <h4 class="font-bold text-white text-sm truncate">${item.title}</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">${item.desc}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
 
-        .hero-banner-title {
-            font-size: 36px;
-            font-weight: 900;
-            margin-bottom: 8px;
-            background: linear-gradient(90deg, #ffffff, #00d2ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        // Render TV Channel List
+        function renderChannelsList() {
+            const container = document.getElementById('channelsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            channels.forEach((ch, idx) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3.5 rounded-xl glass-card border border-white/10 hover:border-cyan-400/50 cursor-pointer transition-all active:scale-[0.98]';
+                item.onclick = () => initHlsPlayer(ch.url, ch.name);
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${ch.flag}</span>
+                        <div>
+                            <h4 class="font-bold text-sm text-white">${ch.name}</h4>
+                            <span class="text-[10px] text-slate-400">Stream HD Direct</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-play text-xs text-cyan-400 opacity-60"></i>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        .hero-banner-sub {
-            color: var(--text-sub);
-            font-size: 15px;
-            max-width: 600px;
+        // Safe HLS Video Player Handler
+        function initHlsPlayer(streamUrl, channelName) {
+            const video = document.getElementById('hlsPlayer');
+            const title = document.getElementById('currentChannelTitle');
+            if (title) title.innerText = channelName;
+            if (!video) return;
+
+            if (Hls.isSupported()) {
+                if (hlsPlayer) hlsPlayer.destroy();
+                hlsPlayer = new Hls({ enableWorker: true });
+                hlsPlayer.loadSource(streamUrl);
+                hlsPlayer.attachMedia(video);
+                hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().catch(() => {});
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = streamUrl;
+                video.play().catch(() => {});
+            }
         }
 
-        /* Expanded 3D Category Grid */
-        .quick-categories-grid-large {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
-            margin-bottom: 30px;
+        // Modal Open / Close Logic
+        function toggleModal(show) {
+            const modal = document.getElementById('settingsModal');
+            if (!modal) return;
+            if (show) {
+                modal.classList.add('active');
+            } else {
+                modal.classList.remove('active');
+            }
         }
 
-        .category-card-large {
-            height: 220px;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            border: 1px solid var(--border-subtle);
-            background: #121824;
-            transition: all 0.3s ease;
+        // Settings Button Actions Trigger
+        function triggerAction(actionName) {
+            showToast(`${actionName}`);
+            toggleModal(false);
         }
 
-        .category-card-large:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: var(--primary-blue);
-            box-shadow: 0 15px 35px var(--primary-glow);
+        // Popup Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            if (!toast || !msg) return;
+
+            msg.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
-        .category-card-large img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: brightness(0.65);
+        // Non-blocking 3D Three.js Particle System
+        function initThreeJsBackground() {
+            try {
+                const canvas = document.getElementById('webgl-canvas');
+                if (!canvas || typeof THREE === 'undefined') return;
+
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                const geometry = new THREE.BufferGeometry();
+                const count = 400;
+                const positions = new Float32Array(count * 3);
+
+                for (let i = 0; i < count * 3; i++) {
+                    positions[i] = (Math.random() - 0.5) * 12;
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const material = new THREE.PointsMaterial({
+                    size: 0.035,
+                    color: 0x00d2ff,
+                    transparent: true,
+                    opacity: 0.6
+                });
+
+                const particles = new THREE.Points(geometry, material);
+                scene.add(particles);
+
+                camera.position.z = 3;
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                function renderLoop() {
+                    requestAnimationFrame(renderLoop);
+                    particles.rotation.y += 0.0006;
+                    particles.rotation.x += 0.0003;
+                    renderer.render(scene, camera);
+                }
+                renderLoop();
+            } catch (err) {
+                console.warn('WebGL rendering fallback active', err);
+            }
         }
-
-        .category-card-overlay-large {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 20px;
-            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 100%);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .category-card-overlay-large i { font-size: 26px; }
-        .category-card-overlay-large span { font-size: 20px; font-weight: 800; }
-
-        /* Media Grids */
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-        }
-
-        .media-card {
-            background: var(--bg-card);
-            border-radius: 14px; overflow: hidden;
-            border: 1px solid var(--border-subtle);
-            cursor: pointer; transition: 0.2s;
-        }
-
-        .media-card:hover { transform: translateY(-5px); border-color: var(--primary-blue); }
-        .media-card img { width: 100%; height: 230px; object-fit: cover; }
-        .media-card-body { padding: 12px; }
-
-        /* Live TV Layout */
-        .live-layout {
-            display: grid;
-            grid-template-columns: 460px 1fr;
-            gap: 30px;
-        }
-
-        .player-preview-card {
-            background: var(--bg-card);
-            border-radius: 20px; overflow: hidden;
-            border: 1px solid var(--border-subtle);
-            position: sticky; top: 100px;
-        }
-
-        .video-
+    </script>
+</body>
+</html>
+```
