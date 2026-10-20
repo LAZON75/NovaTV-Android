@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieBoxTV - Pro UI</title>
+    <title>StreamVibe PRO - NextGen IPTV Experience</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- HLS & 3D Libraries -->
+    <!-- Streaming & 3D Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
-            --bg-main: #0a0d14;
-            --bg-card: rgba(22, 28, 45, 0.85);
-            --bg-glass: rgba(255, 255, 255, 0.06);
-            --primary-blue: #2563eb;
-            --primary-light: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.35);
+            --bg-main: #06080e;
+            --bg-card: rgba(18, 24, 38, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --primary-blue: #00d2ff;
+            --primary-glow: rgba(0, 210, 255, 0.5);
+            --accent-red: #ff0055;
             --pill-active: #ffffff;
             --text-main: #ffffff;
             --text-sub: #94a3b8;
-            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-subtle: rgba(255, 255, 255, 0.1);
         }
 
         [data-theme="neon"] {
-            --primary-light: #ff007f;
-            --primary-glow: rgba(255, 0, 127, 0.4);
+            --primary-blue: #ff007f;
+            --primary-glow: rgba(255, 0, 127, 0.5);
         }
 
         * {
@@ -56,13 +56,13 @@
             pointer-events: none;
         }
 
-        /* Navigation Header */
+        /* Top Bar Navigation */
         .top-navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 16px 40px;
-            background: rgba(10, 13, 20, 0.9);
+            background: rgba(6, 8, 14, 0.9);
             backdrop-filter: blur(20px);
             position: sticky;
             top: 0;
@@ -70,14 +70,73 @@
             border-bottom: 1px solid var(--border-subtle);
         }
 
-        .brand-logo {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--primary-light);
+        /* 3D Animated Neon Brand Logo */
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+        }
+
+        .brand-logo-3d {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5, #ff0055);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.6), 0 0 40px rgba(255, 0, 85, 0.4);
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             gap: 10px;
-            cursor: pointer;
+            transform: perspective(500px) rotateX(10deg);
+            transition: all 0.3s ease;
+        }
+
+        .brand-logo-3d:hover {
+            transform: perspective(500px) rotateX(0deg) scale(1.03);
+            text-shadow: 0 0 30px rgba(0, 210, 255, 0.9), 0 0 50px rgba(255, 0, 85, 0.7);
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, #ff0055, #ff5050);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            box-shadow: 0 0 12px rgba(255, 0, 85, 0.6);
+            letter-spacing: 1px;
+        }
+
+        /* Server Status Indicator (Live Green Pulse) */
+        .server-status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .green-dot {
+            width: 9px;
+            height: 9px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         .nav-center {
@@ -130,12 +189,12 @@
         }
 
         .icon-btn:hover, .icon-btn:focus {
-            background: var(--primary-light);
+            background: var(--primary-blue);
             color: #000;
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* Views Layout */
+        /* View Layouts */
         .view-section {
             display: none;
             padding: 20px 40px;
@@ -151,7 +210,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Home Hero Layout */
+        /* Hero Layout */
         .hero-layout {
             display: grid;
             grid-template-columns: 320px 1fr;
@@ -197,7 +256,7 @@
             font-weight: 600;
         }
 
-        /* Cleaned Category Quick Cards Grid */
+        /* Quick Category Cards */
         .quick-categories-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -218,13 +277,12 @@
 
         .category-card:hover, .category-card:focus {
             transform: translateY(-5px) scale(1.03);
-            border-color: var(--primary-light);
+            border-color: var(--primary-blue);
             box-shadow: 0 10px 25px var(--primary-glow);
         }
 
         .category-card img {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
             filter: brightness(0.7);
         }
@@ -234,14 +292,12 @@
             bottom: 0; left: 0; width: 100%;
             padding: 15px;
             background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
         }
 
         .category-card-overlay i {
             font-size: 18px;
-            color: var(--primary-light);
+            color: var(--primary-blue);
         }
 
         .category-card-overlay span {
@@ -261,9 +317,7 @@
             background: var(--bg-card);
             border-radius: 16px;
             padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            display: flex; align-items: center; gap: 15px;
             width: 320px;
             border: 1px solid var(--border-subtle);
         }
@@ -272,10 +326,8 @@
             width: 42px; height: 42px;
             border-radius: 50%;
             background: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: #000;
         }
 
         .progress-bar {
@@ -288,10 +340,10 @@
 
         .progress-fill {
             height: 100%;
-            background: var(--primary-light);
+            background: var(--primary-blue);
         }
 
-        /* Live TV View */
+        /* Live TV View Layout */
         .live-layout {
             display: grid;
             grid-template-columns: 460px 1fr;
@@ -335,8 +387,8 @@
         }
 
         .channel-pro-card:hover, .channel-pro-card:focus {
-            background: rgba(56, 189, 248, 0.15);
-            border-color: var(--primary-light);
+            background: rgba(0, 210, 255, 0.15);
+            border-color: var(--primary-blue);
             transform: translateY(-3px);
         }
 
@@ -347,7 +399,7 @@
             font-size: 20px; flex-shrink: 0;
         }
 
-        /* Settings Slide Modal */
+        /* Settings Modal Overlay */
         .settings-modal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -384,7 +436,7 @@
 
         .settings-item label {
             display: block; font-size: 14px; font-weight: 700;
-            margin-bottom: 8px; color: var(--primary-light);
+            margin-bottom: 8px; color: var(--primary-blue);
         }
 
         .settings-item select, .settings-item input {
@@ -395,7 +447,7 @@
         }
 
         .btn-save-settings {
-            width: 100%; background: var(--primary-light);
+            width: 100%; background: var(--primary-blue);
             color: #000; border: none; padding: 12px;
             border-radius: 12px; font-weight: 800;
             font-size: 15px; cursor: pointer;
@@ -411,13 +463,20 @@
 </head>
 <body>
 
-    <!-- Dynamic 3D Particles Background -->
+    <!-- Dynamic 3D Particles Background Canvas -->
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Top Navbar -->
+    <!-- Top Navigation Header -->
     <nav class="top-navbar">
-        <div class="brand-logo" onclick="switchView('homeView')">
-            <i class="fa-solid fa-play"></i> MovieBoxTV
+        <div class="brand-container" onclick="switchView('homeView')">
+            <div class="brand-logo-3d">
+                <i class="fa-solid fa-play" style="color:#00d2ff;"></i> StreamVibe <span class="brand-badge">PRO</span>
+            </div>
+            <!-- Live Server Indicator -->
+            <div class="server-status-pill">
+                <span class="green-dot"></span>
+                <span>SERVER ONLINE</span>
+            </div>
         </div>
 
         <div class="nav-center">
@@ -429,7 +488,7 @@
         </div>
 
         <div class="nav-right">
-            <button class="icon-btn" id="settingsBtn" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
+            <button class="icon-btn" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
         </div>
     </nav>
 
@@ -441,14 +500,14 @@
             </div>
 
             <div class="movie-details">
-                <h1 class="movie-title">MovieBoxTV - Cinema & Live Streaming</h1>
+                <h1 class="movie-title">StreamVibe PRO - Universal Streaming</h1>
                 <div class="movie-meta">
-                    <span style="color:#facc15;"><i class="fa-solid fa-star"></i> 8.8</span>
+                    <span style="color:#facc15;"><i class="fa-solid fa-star"></i> 8.9</span>
                     <span>2026</span>
-                    <span>Cinema, Live Channels, Series</span>
+                    <span>4K Cinema, Live IPTV, Series</span>
                 </div>
 
-                <!-- Clean 4 Quick Category Cards -->
+                <!-- Clean Category Cards -->
                 <div class="quick-categories-grid">
                     <div class="category-card" onclick="switchView('moviesView')">
                         <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop" alt="Films">
@@ -495,19 +554,19 @@
 
     <!-- FILMS VIEW -->
     <div id="moviesView" class="view-section">
-        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-film" style="color:var(--primary-light);"></i> Bibliothèque de Films</h2>
+        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-film" style="color:var(--primary-blue);"></i> Bibliothèque de Films</h2>
         <div class="channels-pro-grid" id="moviesGrid"></div>
     </div>
 
     <!-- SÉRIES VIEW -->
     <div id="seriesView" class="view-section">
-        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-tv" style="color:var(--primary-light);"></i> Séries & Saisons</h2>
+        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-tv" style="color:var(--primary-blue);"></i> Séries & Saisons</h2>
         <div class="channels-pro-grid" id="seriesGrid"></div>
     </div>
 
     <!-- ANIMÉS VIEW -->
     <div id="animesView" class="view-section">
-        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-child" style="color:var(--primary-light);"></i> Animés & Enfants</h2>
+        <h2 style="margin-bottom:20px;"><i class="fa-solid fa-child" style="color:var(--primary-blue);"></i> Animés & Enfants</h2>
         <div class="channels-pro-grid" id="animesGrid"></div>
     </div>
 
@@ -532,7 +591,7 @@
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
             <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="font-size: 20px; margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--primary-light);"></i> Paramètres النظام</h2>
+            <h2 style="font-size: 20px; margin-bottom: 20px;"><i class="fa-solid fa-sliders" style="color: var(--primary-blue);"></i> Paramètres النظام</h2>
 
             <div class="settings-item">
                 <label>Langue / اللغة</label>
@@ -585,7 +644,7 @@
             }
 
             particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const particlesMaterial = new THREE.PointsMaterial({ size: 0.03, color: 0x38bdf8 });
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.03, color: 0x00d2ff });
             const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
             scene.add(particleSystem);
 
@@ -638,22 +697,10 @@
             }
         }
 
-        function openSettings() {
-            document.getElementById('settingsModal').classList.add('active');
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-
-        function saveSettings() {
-            alert('تم حفظ الإعدادات بنجاح!');
-            closeSettings();
-        }
+        function openSettings() { document.getElementById('settingsModal').classList.add('active'); }
+        function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+        function applyTheme(theme) { document.documentElement.setAttribute('data-theme', theme); }
+        function saveSettings() { alert('تم حفظ الإعدادات بنجاح!'); closeSettings(); }
     </script>
 </body>
 </html>
