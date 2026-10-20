@@ -45,15 +45,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          ZIP_FILE="$(find . -maxdepth 1 -type f -iname '*.zip' -print -quit)"
+          ZIP_FILE="NovaTV-Neon-Edition-Project.zip"
 
-          if [ -z "$ZIP_FILE" ]; then
-            echo "::error::No ZIP project file found in repository root."
+          if [ ! -f "$ZIP_FILE" ]; then
+            ZIP_FILE="$(find . -maxdepth 1 -type f -iname '*.zip' -print -quit)"
+          fi
+
+          if [ -z "$ZIP_FILE" ] || [ ! -f "$ZIP_FILE" ]; then
+            echo "::error::No project ZIP found in repository root."
+            ls -la
             exit 1
           fi
 
-          echo "Using project archive: $ZIP_FILE"
-
+          echo "Extracting: $ZIP_FILE"
           mkdir -p project
           unzip -q "$ZIP_FILE" -d project
 
@@ -63,9 +67,8 @@ jobs:
             -print -quit)"
 
           if [ -z "$APP_GRADLE" ]; then
-            echo "::error::Cannot find app/build.gradle.kts or app/build.gradle inside ZIP."
-            echo "Extracted files:"
-            find project -maxdepth 4 -type f | head -100
+            echo "::error::No Android app Gradle file found in ZIP."
+            find project -maxdepth 5 -type f | head -100
             exit 1
           fi
 
@@ -73,51 +76,90 @@ jobs:
           PROJECT_DIR="$(realpath "$PROJECT_DIR")"
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Found Android project: $PROJECT_DIR"
-
-      - name: Update Media3 dependencies
-        run: |
-          find "$PROJECT_DIR" -type f \
-            \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "*.toml" \) \
-            -exec sed -i 's/1\.5\.1/1.6.1/g' {} +
+          echo "Android project: $PROJECT_DIR"
 
       - name: Fix Java and Kotlin compatibility
         shell: bash
         run: |
-          FILE="$PROJECT_DIR/app/build.gradle.kts"
+          set -euo pipefail
 
-          if [ ! -f "$FILE" ]; then
-            echo "Kotlin Gradle file not found; checking Groovy Gradle file."
-            FILE="$PROJECT_DIR/app/build.gradle"
-          fi
-
-          if [ ! -f "$FILE" ]; then
-            echo "::error::App Gradle file not found."
-            exit 1
-          fi
-
-          python3 - "$FILE" <<'PY'
+          python3 - "$PROJECT_DIR" <<'PY'
+          import re
           import sys
           from pathlib import Path
 
-          p = Path(sys.argv[1])
-          s = p.read_text()
+          root = Path(sys.argv[1])
+          app = root / "app"
 
-          s = s.replace(
-              'JavaVersion.VERSION_1_8',
-              'JavaVersion.VERSION_17'
-          )
-          s = s.replace(
-              'jvmTarget = "1.8"',
-              'jvmTarget = "17"'
-          )
-          s = s.replace(
-              'jvmTarget = "8"',
-              'jvmTarget = "17"'
-          )
+          files = [
+              app / "build.gradle.kts",
+              app / "build.gradle",
+          ]
 
-          p.write_text(s)
-          print(f"Updated compatibility settings in {p}")
+          found = False
+
+          for p in files:
+              if not p.is_file():
+                  continue
+
+              found = True
+              s = p.read_text()
+
+              # Update common Java compatibility declarations.
+              s = re.sub(
+                  r'JavaVersion\.VERSION_(?:1_8|8|11|17)',
+                  'JavaVersion.VERSION_17',
+                  s
+              )
+
+              # Update existing Kotlin JVM target declarations.
+              s = re.sub(
+                  r'jvmTarget\s*=\s*["\'](?:1\.8|8|11|17)["\']',
+                  'jvmTarget = "17"',
+                  s
+              )
+
+              # Configure Java compatibility if absent.
+              if "compileOptions {" not in s:
+                  block = (
+                      "\n    compileOptions {\n"
+                      "        sourceCompatibility = "
+                      "JavaVersion.VERSION_17\n"
+                      "        targetCompatibility = "
+                      "JavaVersion.VERSION_17\n"
+                      "    }\n"
+                  )
+
+                  if p.name == "build.gradle":
+                      block = (
+                          "\n    compileOptions {\n"
+                          "        sourceCompatibility "
+                          "JavaVersion.VERSION_17\n"
+                          "        targetCompatibility "
+                          "JavaVersion.VERSION_17\n"
+                          "    }\n"
+                      )
+
+                  match = re.search(r'(?m)^android\s*\{', s)
+
+                  if match:
+                      s = s[:match.end()] + block + s[match.end():]
+                  else:
+                      raise SystemExit(
+                          f"No android block found in {p}"
+                      )
+
+              # For Kotlin DSL, add a JVM toolchain if no target
+              # declaration or toolchain is present.
+              if p.name.endswith(".kts") and "jvmToolchain(" not in s:
+                  if "kotlin {" not in s:
+                      s += "\n\nkotlin {\n    jvmToolchain(17)\n}\n"
+
+              p.write_text(s)
+              print(f"Updated compatibility settings: {p}")
+
+          if not found:
+              raise SystemExit("App Gradle build file not found.")
           PY
 
       - name: Build APK
@@ -126,12 +168,28 @@ jobs:
           set -euo pipefail
           cd "$PROJECT_DIR"
 
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
+          if [ -f gradlew ]; then
+            chmod +x gradlew
             ./gradlew assembleDebug --no-daemon
           else
             gradle assembleDebug --no-daemon
           fi
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APK="$(find "$PROJECT_DIR/app/build/outputs/apk/debug" \
+            -type f -name '*.apk' -print -quit)"
+
+          if [ -z "$APK" ]; then
+            echo "::error::APK was not generated."
+            exit 1
+          fi
+
+          echo "APK successfully generated: $APK"
+          ls -lh "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
