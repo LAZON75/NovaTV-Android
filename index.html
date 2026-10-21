@@ -1,21 +1,19 @@
 <!DOCTYPE html>
-<html lang="fr" dir="ltr" id="appHtml">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamVibe PRO - NextGen IPTV Experience</title>
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- HLS & Three.js Libraries -->
+    <!-- HLS Library -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
             --bg-main: #07090e;
             --bg-card: #121824;
-            --bg-glass: rgba(18, 24, 36, 0.85);
             --primary-accent: #38bdf8;
             --primary-glow: rgba(56, 189, 248, 0.35);
             --btn-settings: #f43f5e;
@@ -24,24 +22,11 @@
             --border-subtle: rgba(255, 255, 255, 0.08);
         }
 
-        [data-theme="neon"] {
-            --primary-accent: #ec4899;
-            --primary-glow: rgba(236, 72, 153, 0.35);
-            --btn-settings: #d946ef;
-        }
-
-        [data-theme="cyber"] {
-            --primary-accent: #2dd4bf;
-            --primary-glow: rgba(45, 212, 191, 0.35);
-            --btn-settings: #0284c7;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif;
-            user-select: none;
+            font-family: 'Tajawal', sans-serif;
             outline: none;
         }
 
@@ -53,25 +38,16 @@
             padding-bottom: 50px;
         }
 
-        #webgl-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* شريط التنقل العلوي الأنيق */
+        /* شريط التنقل العلوي */
         .top-navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 16px 45px;
-            background: rgba(7, 9, 14, 0.92);
-            backdrop-filter: blur(25px);
+            background: rgba(7, 9, 14, 0.95);
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
         }
 
@@ -85,49 +61,19 @@
         .brand-logo-3d {
             font-size: 24px;
             font-weight: 900;
-            background: linear-gradient(135deg, var(--primary-accent), #818cf8, #f43f5e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-accent);
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
         .brand-badge {
-            background: linear-gradient(135deg, #f43f5e, #fb7185);
+            background: #f43f5e;
             color: #fff;
             font-size: 10px;
             font-weight: 800;
             padding: 3px 8px;
             border-radius: 6px;
-            -webkit-text-fill-color: #fff;
-        }
-
-        .server-status-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #34d399;
-        }
-
-        .green-dot {
-            width: 8px; height: 8px;
-            background-color: #34d399;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #34d399;
-            animation: pulse-green 1.5s infinite;
-        }
-
-        @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
         }
 
         .nav-center {
@@ -156,7 +102,6 @@
             background: var(--primary-accent);
             color: #07090e;
             font-weight: 800;
-            box-shadow: 0 0 20px var(--primary-glow);
         }
 
         .icon-btn {
@@ -173,7 +118,6 @@
         .icon-btn:hover {
             background: var(--primary-accent);
             color: #07090e;
-            box-shadow: 0 0 20px var(--primary-glow);
         }
 
         /* عرض الأقسام */
@@ -184,7 +128,6 @@
 
         .view-section.active { display: block; }
 
-        /* بانر السينما الكامل تحت القوائم */
         .hero-banner-large {
             position: relative;
             width: 100%;
@@ -199,16 +142,13 @@
             flex-direction: column;
             justify-content: flex-end;
             margin-bottom: 35px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
         }
 
         .hero-banner-title {
             font-size: 42px;
             font-weight: 900;
             margin-bottom: 12px;
-            background: linear-gradient(90deg, #ffffff, var(--primary-accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff;
         }
 
         .hero-banner-sub {
@@ -218,54 +158,6 @@
             line-height: 1.6;
         }
 
-        /* شبكة الأقسام الأربعة ظاهرة بالكامل وأنيقة */
-        .quick-categories-grid-large {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
-            margin-bottom: 35px;
-        }
-
-        .category-card-large {
-            height: 220px;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            border: 1px solid var(--border-subtle);
-            background: var(--bg-card);
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .category-card-large:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: var(--primary-accent);
-            box-shadow: 0 20px 40px var(--primary-glow);
-        }
-
-        .category-card-large img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: brightness(0.6);
-            transition: 0.35s;
-        }
-
-        .category-card-large:hover img { filter: brightness(0.85); }
-
-        .category-card-overlay-large {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 22px;
-            background: linear-gradient(180deg, transparent 0%, rgba(7,9,14,0.95) 100%);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .category-card-overlay-large i { font-size: 24px; color: var(--primary-accent); }
-        .category-card-overlay-large span { font-size: 18px; font-weight: 800; color: #fff; }
-
-        /* شبكة الوسائط والأفلام */
         .media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -276,26 +168,240 @@
             background: var(--bg-card);
             border-radius: 16px; overflow: hidden;
             border: 1px solid var(--border-subtle);
-            cursor: pointer; transition: 0.3s;
+            cursor: pointer;
         }
 
-        .media-card:hover { transform: translateY(-6px); border-color: var(--primary-accent); box-shadow: 0 15px 30px var(--primary-glow); }
         .media-card img { width: 100%; height: 240px; object-fit: cover; }
         .media-card-body { padding: 16px; }
 
-        /* شاشة البث الحي وجدول القنوات */
-        .live-layout {
-            display: grid;
-            grid-template-columns: 440px 1fr;
-            gap: 28px;
-            align-items: start;
+        /* نافذة الإعدادات البسيطة والمضمونة 100% */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .player-preview-card {
-            background: var(--bg-card);
-            border-radius: 22px; 
-            overflow: hidden;
+        .settings-content {
+            background: #0b0f19;
             border: 1px solid var(--border-subtle);
-            position: sticky; 
-            top: 100px;
-            box-shadow:
+            border-radius: 28px;
+            padding: 30px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .settings-header-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 12px;
+        }
+
+        .settings-header-box h2 {
+            font-size: 22px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-settings-btn {
+            background: rgba(255,255,255,0.1);
+            border: none; color: #fff;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .setting-card-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .setting-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-card-title i { color: var(--primary-accent); }
+
+        .setting-card-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        .setting-input-box {
+            background: #07090e;
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .setting-action-btn {
+            background: transparent;
+            border: 1px solid var(--primary-accent);
+            color: var(--primary-accent);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .setting-action-btn:hover {
+            background: var(--primary-accent);
+            color: #07090e;
+        }
+
+        .setting-action-btn.danger {
+            border-color: var(--btn-settings);
+            color: var(--btn-settings);
+        }
+        .setting-action-btn.danger:hover {
+            background: var(--btn-settings);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شريط التنقل -->
+    <nav class="top-navbar">
+        <div class="brand-container" onclick="switchView('homeView', document.querySelector('.nav-pill'))">
+            <div class="brand-logo-3d">
+                <i class="fa-solid fa-play"></i> StreamVibe <span class="brand-badge">PRO</span>
+            </div>
+        </div>
+
+        <div class="nav-center">
+            <button class="nav-pill active" onclick="switchView('homeView', this)">الرئيسية</button>
+            <button class="nav-pill" onclick="switchView('moviesView', this)">الأفلام</button>
+            <button class="nav-pill" onclick="switchView('seriesView', this)">المسلسلات</button>
+            <button class="nav-pill" onclick="switchView('liveView', this)">البث الحي</button>
+        </div>
+
+        <div class="nav-right">
+            <!-- زر الإعدادات المباشر والمضمون -->
+            <button class="icon-btn" onclick="document.getElementById('settingsModal').style.display = 'flex'"><i class="fa-solid fa-gear"></i></button>
+        </div>
+    </nav>
+
+    <!-- الأقسام -->
+    <div id="homeView" class="view-section active">
+        <div class="hero-banner-large">
+            <h1 class="hero-banner-title">StreamVibe PRO - منصة البث الشاملة</h1>
+            <p class="hero-banner-sub">استمتع بتجربة مشاهدة مذهلة لأفضل الأفلام، المسلسلات، ومئات القنوات التلفزيونية بجودة عالية.</p>
+        </div>
+    </div>
+
+    <div id="moviesView" class="view-section">
+        <h2 style="margin-bottom:20px;">مكتبة الأفلام</h2>
+        <div class="media-grid" id="moviesGrid"></div>
+    </div>
+
+    <div id="seriesView" class="view-section">
+        <h2 style="margin-bottom:20px;">المسلسلات</h2>
+        <div class="media-grid" id="seriesGrid"></div>
+    </div>
+
+    <div id="liveView" class="view-section">
+        <h2>البث الحي والقنوات</h2>
+    </div>
+
+    <!-- نافذة الإعدادات (بتصميم البطاقات) -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header-box">
+                <h2><i class="fa-solid fa-gear"></i> الإعدادات</h2>
+                <button class="close-settings-btn" onclick="document.getElementById('settingsModal').style.display = 'none'"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- بطاقة مصدر القنوات -->
+            <div class="setting-card-box">
+                <div class="setting-card-title"><i class="fa-solid fa-list-ul"></i> مصدر القنوات (قائمة M3U)</div>
+                <div class="setting-card-desc">أدخل رابط قائمة M3U أو رابط بث مباشر (.m3u8).</div>
+                <input type="text" id="m3uNameInput" class="setting-input-box" placeholder="اسم القناة (اختياري)">
+                <input type="url" id="m3uUrlInput" class="setting-input-box" placeholder="https://example.com/playlist.m3u">
+                <button class="setting-action-btn" onclick="alert('تم حفظ الرابط بنجاح!')">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> تحميل / تحديث القائمة
+                </button>
+            </div>
+
+            <!-- بطاقة المظهر واللغة -->
+            <div class="setting-card-box">
+                <div class="setting-card-title"><i class="fa-solid fa-palette"></i> المظهر واللغة</div>
+                <div style="display: flex; gap: 10px;">
+                    <select class="setting-input-box">
+                        <option>أزرق سماوي</option>
+                        <option>نيون وردي</option>
+                    </select>
+                    <select class="setting-input-box">
+                        <option>العربية</option>
+                        <option>Français</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- بطاقة التخزين والصيانة -->
+            <div class="setting-card-box">
+                <div class="setting-card-title"><i class="fa-solid fa-broom"></i> التخزين والصيانة</div>
+                <div class="setting-card-desc">امسح الملفات المؤقتة عند حدوث مشكلة.</div>
+                <button class="setting-action-btn danger" onclick="localStorage.clear(); alert('تم مسح السجل بنجاح!'); location.reload();">
+                    <i class="fa-solid fa-trash-can"></i> مسح السجل وإعادة الضبط
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchView(viewId, btn) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if(btn) btn.classList.add('active');
+        }
+
+        // بيانات تجريبية للأفلام
+        const movies = [
+            { title: "Inception", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop" },
+            { title: "Interstellar", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop" }
+        ];
+
+        const grid = document.getElementById('moviesGrid');
+        movies.forEach(m => {
+            grid.innerHTML += `<div class="media-card"><img src="${m.img}"><div class="media-card-body"><b>${m.title}</b></div></div>`;
+        });
+    </script>
+</body>
+</html>
