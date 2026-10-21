@@ -66,6 +66,22 @@ jobs:
           PYEOF
           python3 patch.py
 
+      - name: Fix remote navigation
+        run: |
+          python3 - << 'PYEOF'
+          import sys
+          p = 'www/index.html'
+          s = open(p, encoding='utf-8').read()
+          old = r"""if(order[j]){go(items(order[j])[0]);e.preventDefault()}"""
+          new = r"""{const st=(k==='ArrowRight'?1:-1);let jj=order.indexOf(z)+st,tg=null;while(order[jj]&&!tg){const it=items(order[jj]);if(it.length)tg=it[0];jj+=st}if(tg){go(tg);e.preventDefault()}}"""
+          if s.count(old) != 1:
+              print('ERROR: navigation code not found')
+              sys.exit(1)
+          s = s.replace(old, new)
+          open(p, 'w', encoding='utf-8').write(s)
+          print('navigation fixed')
+          PYEOF
+
       - name: Create Capacitor project
         run: |
           npm init -y
