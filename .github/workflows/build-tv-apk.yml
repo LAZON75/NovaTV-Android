@@ -1,0 +1,105 @@
+name: Build StreamVibe TV APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Prepare web files
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+          cat > patch.py << 'PYEOF'
+          import sys
+          p = 'www/index.html'
+          s = open(p, encoding='utf-8').read()
+          a = s.find('function play(c){')
+          b = s.find('function scr(id,d)')
+          if a < 0 or b < 0 or b < a:
+              print('ERROR: play() not found')
+              sys.exit(1)
+          NEW = r'''function play(c){
+           if(!c)return;activeUrl=c.url;showIB(c);
+           const u0=c.url,u=(location.protocol==='https:'&&u0.startsWith('http://'))?u0.replace('http://','https://'):u0;
+           recent=[c,...recent.filter(x=>x.url!==c.url)].slice(0,30);LS.s('recent',recent);
+           if(LS.g('ext',false)){window.open(c.url,'_blank');return}
+           $('np').innerHTML=`<b>${esc(c.name)}</b><span>● ${t('live')}</span>`;
+           const v=$('v'),m=$('msg'),tok=play.n=(play.n||0)+1,stale=()=>tok!==play.n;
+           let src=u;
+           const show=x=>{m.textContent=x;m.style.display='flex'};
+           const ok=()=>{if(stale())return;clearTimeout(play.t);m.style.display='none'};
+           const bad=why=>{if(stale())return;clearTimeout(play.t);show(t('err')+' ['+why+']')};
+           const hlsOK=!!(window.Hls&&Hls.isSupported());
+           const reset=()=>{clearTimeout(play.t);if(hls){hls.destroy();hls=null}v.onerror=null;v.onplaying=null;v.pause();v.removeAttribute('src');v.load();$('qSel').innerHTML='<option value="-1">Auto</option>'};
+           const timer=()=>{play.t=setTimeout(()=>{if(!stale()&&v.readyState<3)next('timeout')},12000)};
+           const nat=()=>{reset();v.onplaying=ok;v.onerror=()=>next('native '+(v.error?v.error.code:''));v.src=src;v.play().catch(()=>{});timer()};
+           const hp=()=>{reset();hls=new Hls({enableWorker:true,lowLatencyMode:true,manifestLoadingMaxRetry:1,levelLoadingMaxRetry:1});v.onplaying=ok;
+            hls.loadSource(src);hls.attachMedia(v);
+            hls.on(Hls.Events.MANIFEST_PARSED,(e,d)=>{$('qSel').innerHTML='<option value="-1">Auto</option>'+d.levels.map((l,i)=>`<option value="${i}">${l.height?l.height+'p':Math.round(l.bitrate/1000)+'k'}</option>`).join('');v.play().catch(()=>{})});
+            let rec=0;hls.on(Hls.Events.ERROR,(e,d)=>{if(!d.fatal)return;if(d.type===Hls.ErrorTypes.MEDIA_ERROR&&!rec++){hls.recoverMediaError();return}next('hls '+d.details+(d.response?' '+d.response.code:''))});timer()};
+           const order=hlsOK?[hp,nat]:[nat];
+           if(u!==u0){
+            if(hlsOK)order.push(()=>{src=u0;hp()});
+            order.push(()=>{src=u0;nat()});
+           }
+           const next=why=>{if(stale())return;const f=order.shift();f?f():bad(why)};
+           show(t('loading'));next();LS.s('last',c);renderCh();
+          }
+          '''
+          s = s[:a] + NEW + s[b:]
+          open(p, 'w', encoding='utf-8').write(s)
+          print('patched OK')
+          PYEOF
+          python3 patch.py
+
+      - name: Create Capacitor project
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.streamvibe.tv",
+            "appName": "StreamVibe",
+            "webDir": "www",
+            "server": { "androidScheme": "http", "cleartextTraffic": true },
+            "plugins": { "CapacitorHttp": { "enabled": true } }
+          }
+          EOF
+          npx cap add android
+          npx cap sync android
+
+      - name: Configure for Android TV and http
+        run: |
+          python3 - << 'PYEOF'
+          f = 'android/app/src/main/AndroidManifest.xml'
+          s = open(f, encoding='utf-8').read()
+          s = s.replace('<application', '<uses-feature android:name="android.software.leanback" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <application android:usesCleartextTraffic="true"', 1)
+          s = s.replace('<category android:name="android.intent.category.LAUNCHER" />', '<category android:name="android.intent.category.LAUNCHER" />\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />', 1)
+          open(f, 'w', encoding='utf-8').write(s)
+          print(s)
+          PYEOF
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StreamVibe-TV-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
