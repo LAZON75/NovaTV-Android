@@ -49,7 +49,7 @@ jobs:
            const nat=()=>{reset();v.onplaying=ok;v.onerror=()=>next('native '+(v.error?v.error.code:''));v.src=src;v.play().catch(()=>{});timer()};
            const hp=()=>{reset();hls=new Hls({enableWorker:true,lowLatencyMode:true,manifestLoadingMaxRetry:1,levelLoadingMaxRetry:1});v.onplaying=ok;
             hls.loadSource(src);hls.attachMedia(v);
-            hls.on(Hls.Events.MANIFEST_PARSED,(e,d)=>{$('qSel').innerHTML='<option value="-1">Auto</option>'+d.levels.map((l,i)=>`<option value="${i}">${l.height?l.height+'p':Math.round(l.bitrate/1000)+'k'}</option>`).join('');v.play().catch(()=>{})});
+            hls.on(Hls.Events.MANIFEST_PARSED,(e,d)=>{$('qSel').innerHTML='<option value="-1">Auto</option>'+d.levels.map((l,i)=>`<option value="${i}">${l.height?l.height+'p':Math.round(l.bitrate/1000)+'k'}</option>`).join('');if(window.applyQ)applyQ();v.play().catch(()=>{})});
             let rec=0;hls.on(Hls.Events.ERROR,(e,d)=>{if(!d.fatal)return;if(d.type===Hls.ErrorTypes.MEDIA_ERROR&&!rec++){hls.recoverMediaError();return}next('hls '+d.details+(d.response?' '+d.response.code:''))});timer()};
            const order=hlsOK?[hp,nat]:[nat];
            if(u!==u0){
@@ -82,10 +82,107 @@ jobs:
           print('navigation fixed')
           PYEOF
 
+      - name: Add back button handling
+        run: |
+          python3 - << 'PYEOF'
+          import sys
+          p = 'www/index.html'
+          s = open(p, encoding='utf-8').read()
+          JS = r'''
+          (function(){
+           var A=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
+           if(!A)return;
+           var vis=function(id){var e=document.getElementById(id);return !!(e&&e.style.display&&e.style.display!=='none')};
+           A.addListener('backButton',function(){
+            var v=document.getElementById('v'),pv=document.getElementById('pvv');
+            if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
+            if(v&&v.webkitDisplayingFullscreen){v.webkitExitFullscreen();return}
+            if(pv&&pv.webkitDisplayingFullscreen){pv.webkitExitFullscreen();return}
+            var ms=['mPin','mPl','mLang'];
+            for(var i=0;i<ms.length;i++){if(vis(ms[i])){closeM(ms[i]);return}}
+            if(vis('pv')){closePv();return}
+            if(vis('lib')){closeLib();return}
+            if(vis('live')){var sd=document.getElementById('side');if(sd.classList.contains('show')){sd.classList.remove('show')}else{closeLive()}return}
+            if(vis('settings')){document.getElementById('settings').style.display='none';return}
+            A.exitApp();
+           });
+          })();
+          '''
+          if '</body>' not in s:
+              print('ERROR: body end not found')
+              sys.exit(1)
+          s = s.replace('</body>', '<script>' + JS + '</script></body>', 1)
+          open(p, 'w', encoding='utf-8').write(s)
+          print('back handler added')
+          PYEOF
+
+      - name: Add quality control
+        run: |
+          python3 - << 'PYEOF'
+          import sys
+          p = 'www/index.html'
+          s = open(p, encoding='utf-8').read()
+          old = '<button class="cb" onclick="fs()">⛶</button>'
+          if s.count(old) != 1:
+              print('ERROR: fullscreen button not found')
+              sys.exit(1)
+          s = s.replace(old, '<button class="cb" id="bQ" onclick="cycleQ()">HD</button>' + old)
+          JS = r'''
+          (function(){
+           window.lbl=function(){
+            var b=document.getElementById('bQ');if(!b)return;
+            if(!hls||!hls.levels||!hls.levels.length){b.textContent='HD';return}
+            if(hls.autoLevelEnabled){b.textContent='Auto';return}
+            var l=hls.levels[hls.currentLevel],h=l&&l.height;
+            b.textContent=h?(h>=1080?'FHD ':h>=720?'HD ':'')+h+'p':'HD';
+           };
+           window.applyQ=function(){
+            if(!hls||!hls.levels||!hls.levels.length)return;
+            var L=hls.levels,p=LS.g('prefQ',99999),i,best=-1,bk=-1,mk=1e15,mi=0;
+            if(p===0){hls.currentLevel=-1;document.getElementById('qSel').value='-1';window.lbl();return}
+            for(i=0;i<L.length;i++){
+             var h=L[i].height||0,k=h*1e9+(L[i].bitrate||0);
+             if(k<mk){mk=k;mi=i}
+             if(h<=p&&k>bk){bk=k;best=i}
+            }
+            if(best<0)best=mi;
+            hls.currentLevel=best;
+            document.getElementById('qSel').value=String(best);
+            window.lbl();
+           };
+           window.cycleQ=function(){
+            if(!hls||!hls.levels||hls.levels.length<2){toast('1 / 1');return}
+            var hs=[];
+            hls.levels.forEach(function(l){var h=l.height||0;if(h&&hs.indexOf(h)<0)hs.push(h)});
+            hs.sort(function(a,b){return b-a});
+            if(!hs.length){
+             hls.currentLevel=hls.autoLevelEnabled?hls.levels.length-1:hls.currentLevel-1;
+             window.lbl();toast(document.getElementById('bQ').textContent);return;
+            }
+            var opts=hs.concat([0]),cur=0;
+            if(hls.autoLevelEnabled){cur=opts.length-1}
+            else{var ch=hls.levels[hls.currentLevel];cur=Math.max(0,opts.indexOf((ch&&ch.height)||0))}
+            var nx=opts[(cur+1)%opts.length];
+            LS.s('prefQ',nx===hs[0]?99999:nx);
+            window.applyQ();
+            toast(document.getElementById('bQ').textContent);
+           };
+           window.setQ=function(i){
+            if(!hls)return;i=+i;hls.currentLevel=i;
+            if(i<0){LS.s('prefQ',0)}else{LS.s('prefQ',hls.levels[i].height||99999)}
+            window.lbl();
+           };
+          })();
+          '''
+          s = s.replace('</body>', '<script>' + JS + '</script></body>', 1)
+          open(p, 'w', encoding='utf-8').write(s)
+          print('quality control added')
+          PYEOF
+
       - name: Create Capacitor project
         run: |
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6
           cat > capacitor.config.json << 'EOF'
           {
             "appId": "com.streamvibe.tv",
